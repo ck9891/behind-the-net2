@@ -1,4 +1,4 @@
-app = "behind-the-net-89fa"
+app = "behind-the-net"
 primary_region = "sjc"
 kill_signal = "SIGINT"
 kill_timeout = 5
