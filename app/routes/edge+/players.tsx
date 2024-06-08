@@ -1,7 +1,7 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 
 import { data } from '#app/data/edge_test.js'
-import { useLoaderData } from '@remix-run/react'
+import { NavLink, useLoaderData } from '@remix-run/react'
 import { PlayerStats } from '#app/types/edge'
 import {
 	Table,
@@ -14,6 +14,7 @@ import {
 	TableCaption,
 } from '#app/components/ui/table'
 import { StatsPopup } from '#app/components/stats-popup.js'
+import { Link } from 'lucide-react'
 
 function transformYear(year: number) {
   const year1 = year.toString().slice(0, 4)
@@ -49,7 +50,7 @@ export default function EdgePlayersRoute() {
             <>
               <TableRow key={player.Player}>
                 <TableCell className='w-[100px]'>{transformYear(player.Season)}</TableCell>
-                <TableCell className='w-[170px]'>{player.First} {player.Last}</TableCell>
+                <TableCell className='w-[170px]'><NavLink to={`./${player.Player}`} className='flex gap-2'><Link />{player.First} {player.Last}</NavLink></TableCell>
                 <TableCell>{player.Pos}</TableCell>
                 <TableCell>{player.Shoots}</TableCell>
                 <TableCell>{player.Team}</TableCell>
