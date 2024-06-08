@@ -26,7 +26,7 @@ export function StatsPopup({children, popupTitle, triggerTitle, elKey}: {childre
       <DialogTrigger asChild>
         <Button variant="outline" className="text-foreground">{triggerTitle}</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] lg:max-w-6xl w-full">
+      <DialogContent className="sm:max-w-[600px] lg:max-w-6xl w-full h-5/6 overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{popupTitle}</DialogTitle>
         </DialogHeader>

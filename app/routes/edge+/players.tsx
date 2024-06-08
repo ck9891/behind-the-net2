@@ -42,7 +42,7 @@ export default function EdgePlayersRoute() {
           <TableHead>GP</TableHead>
           <TableHead>Goals</TableHead>
           <TableHead>Assists</TableHead>
-          <TableHead className='hidden sm:table-cell'>Actions</TableHead>
+          <TableHead>Actions</TableHead>
         </TableRow>
         <TableBody>
           {edgePlayerData.map(player => (
@@ -57,7 +57,7 @@ export default function EdgePlayersRoute() {
                 <TableCell>{player.GP}</TableCell>
                 <TableCell>{player.G}</TableCell>
                 <TableCell>{player.A}</TableCell>
-                <TableCell className='flex gap-1 flex-wrap w-full'>
+                <TableCell className='flex gap-1 flex-wrap w-[140px] md:w-full'>
                 <StatsPopup
                     popupTitle={`${player.First} ${player.Last} Speed`}
                     triggerTitle="View Speed Stats"
