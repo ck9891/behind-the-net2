@@ -64,16 +64,16 @@ export default function EdgePlayersRoute() {
                     triggerTitle="View Speed Stats"
                     key={`${player.Season}-${player.Player}-speed`}
                   >
-                    <Table>
-                      <TableRow>
+                    <Table className='flex md:table'>
+                      <TableRow className='flex flex-col md:table-row'>
                         <TableHead>Skating Speed</TableHead>
                         <TableHead>Avg Skating Speed</TableHead>
                         <TableHead>%ile Skating Speed</TableHead>
                       </TableRow>
-                      <TableBody>
-                        <TableCell>{player['Skating Speed']}</TableCell>
-                        <TableCell>{player['Avg Skating Speed']}</TableCell>
-                        <TableCell>{player['%ile Skating Speed']}</TableCell>
+                      <TableBody className='flex flex-col md:table-row'>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Skating Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Avg Skating Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['%ile Skating Speed']}</TableCell>
                       </TableBody>
                     </Table>
                   </StatsPopup>
@@ -83,8 +83,8 @@ export default function EdgePlayersRoute() {
                     triggerTitle="View Speed Burst Stats"
                     key={`${player.Season}-${player.Player}-bursts`}
                   >
-                    <Table>
-                      <TableRow>
+                    <Table className='flex md:table'>
+                      <TableRow className='flex flex-col md:table-row'>
                         <TableHead>22+ Bursts</TableHead>
                         <TableHead>Avg 22+ Bursts</TableHead>
                         <TableHead>%ile 22+ Bursts</TableHead>
@@ -95,16 +95,16 @@ export default function EdgePlayersRoute() {
                         <TableHead>Avg 18-20 Bursts</TableHead>
                         <TableHead>%ile 18-20 Bursts</TableHead>
                       </TableRow>
-                      <TableBody>
-                        <TableCell>{player['22+ Bursts']}</TableCell>
-                        <TableCell>{player['Avg 22+ Bursts']}</TableCell>
-                        <TableCell>{player['%ile 22+ Bursts']}</TableCell>
-                        <TableCell>{player['20-22 Bursts']}</TableCell>
-                        <TableCell>{player['Avg 20-22 Bursts']}</TableCell>
-                        <TableCell>{player['%ile 20-22 Bursts']}</TableCell>
-                        <TableCell>{player['18-20 Bursts']}</TableCell>
-                        <TableCell>{player['Avg 18-20 Bursts']}</TableCell>
-                        <TableCell>{player['%ile 18-20 Bursts']}</TableCell>
+                      <TableBody className='flex flex-col md:table-row border-l md:border-l-0'>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['22+ Bursts']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Avg 22+ Bursts']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['%ile 22+ Bursts']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['20-22 Bursts']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Avg 20-22 Bursts']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['%ile 20-22 Bursts']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['18-20 Bursts']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Avg 18-20 Bursts']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['%ile 18-20 Bursts']}</TableCell>
                       </TableBody>
                     </Table>
                   </StatsPopup>
@@ -113,8 +113,8 @@ export default function EdgePlayersRoute() {
                     triggerTitle="View Zone Starts"
                     key={`${player.Season}-${player.Player}-zone-starts`}
                   >
-                    <Table>
-                      <TableRow>
+                    <Table className='flex md:table'>
+                      <TableRow className='flex flex-col md:table-row'>
                         <TableHead>O-Zone</TableHead>
                         <TableHead>Avg O-Zone</TableHead>
                         <TableHead>N-Zone</TableHead>
@@ -122,13 +122,13 @@ export default function EdgePlayersRoute() {
                         <TableHead>D-Zone</TableHead>
                         <TableHead>Avg D-Zone</TableHead>
                       </TableRow>
-                      <TableBody>
-                        <TableCell>{player['O-Zone']}</TableCell>
-                        <TableCell>{player['Avg O-Zone']}</TableCell>
-                        <TableCell>{player['N-Zone']}</TableCell>
-                        <TableCell>{player['Avg N-Zone']}</TableCell>
-                        <TableCell>{player['D-Zone']}</TableCell>
-                        <TableCell>{player['Avg D-Zone']}</TableCell>
+                      <TableBody className='flex flex-col md:table-row border-l md:border-l-0'>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['O-Zone']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Avg O-Zone']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['N-Zone']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Avg N-Zone']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['D-Zone']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Avg D-Zone']}</TableCell>
                       </TableBody>
                     </Table>
                   </StatsPopup>
@@ -138,8 +138,8 @@ export default function EdgePlayersRoute() {
                     triggerTitle="View Shot Speed"
                     key={`${player.Season}-${player.Player}-shot-speed`}
                   >
-                    <Table>
-                      <TableRow>
+                    <Table className='flex md:table'>
+                      <TableRow className='flex flex-col md:table-row'>
                         <TableHead>Shot Speed</TableHead>
                         <TableHead>Avg Shot Speed</TableHead>
                         <TableHead>%ile Shot Speed</TableHead>
@@ -156,35 +156,27 @@ export default function EdgePlayersRoute() {
                         <TableHead>Avg 70-80 Speed</TableHead>
                         <TableHead>%ile 70-80 Speed</TableHead>
                       </TableRow>
-                      <TableBody>
-                        <TableCell>{player['Shot Speed']}</TableCell>
-                        <TableCell>{player['Avg Shot Speed']}</TableCell>
-                        <TableCell>{player['%ile Shot Speed']}</TableCell>
-                        <TableCell>{player['100+ Speed']}</TableCell>
-                        <TableCell>{player['Avg 100+ Speed']}</TableCell>
-                        <TableCell>{player['%ile 100+ Speed']}</TableCell>
-                        <TableCell>{player['90-100 Speed']}</TableCell>
-                        <TableCell>{player['Avg 90-100 Speed']}</TableCell>
-                        <TableCell>{player['%ile 90-100 Speed']}</TableCell>
-                        <TableCell>{player['80-90 Speed']}</TableCell>
-                        <TableCell>{player['Avg 80-90 Speed']}</TableCell>
-                        <TableCell>{player['%ile 80-90 Speed']}</TableCell>
-                        <TableCell>{player['70-80 Speed']}</TableCell>
-                        <TableCell>{player['Avg 70-80 Speed']}</TableCell>
-                        <TableCell>{player['%ile 70-80 Speed']}</TableCell>
+                      <TableBody className='flex flex-col md:table-row border-l md:border-l-0'>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Shot Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Avg Shot Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['%ile Shot Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['100+ Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Avg 100+ Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['%ile 100+ Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['90-100 Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Avg 90-100 Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['%ile 90-100 Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['80-90 Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Avg 80-90 Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['%ile 80-90 Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['70-80 Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['Avg 70-80 Speed']}</TableCell>
+                        <TableCell className='pt-0 md:p-4 h-12'>{player['%ile 70-80 Speed']}</TableCell>
                       </TableBody>
                     </Table>
                   </StatsPopup>
                 </TableCell>
               </TableRow>
-              {/* <TableRow>
-                <TableCell
-                  colSpan={11}
-                  className={`flex flex-wrap justify-center gap-2`}
-                >
-                  
-                </TableCell>
-              </TableRow> */}
             </>
           ))}
         </TableBody>
