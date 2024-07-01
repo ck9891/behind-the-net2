@@ -1,5 +1,12 @@
+import fs from 'fs'
+import path, { dirname } from 'path'
+import { fileURLToPath } from 'url'
 import { faker } from '@faker-js/faker'
+import csv from 'csv-parser'
 import { promiseHash } from 'remix-utils/promise'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
 import { prisma } from '#app/utils/db.server.ts'
 import { MOCK_CODE_GITHUB } from '#app/utils/providers/constants'
 import {
@@ -260,7 +267,7 @@ async function seed() {
 	console.timeEnd(`🌱 Database has been seeded`)
 }
 
-seed()
+seedEvents()
 	.catch(e => {
 		console.error(e)
 		process.exit(1)
@@ -268,6 +275,116 @@ seed()
 	.finally(async () => {
 		await prisma.$disconnect()
 	})
+
+const batchSize = 500 // Adjust this value based on your system's performance
+
+async function seedEvents() {
+	let batch = []
+	let i = 0
+	fs.createReadStream(
+		path.join(__dirname, '../seedData/player_list_edge_all.csv'),
+	)
+		.pipe(csv({ headers: false }))
+		.on('data', row => {
+			// The row object is now an array of values
+
+			// for events
+			// batch.push({
+			// 	yrGm: row[0] || '',
+			// 	eventId: row[1] || '',
+			// 	maxRegulationPeriods: parseInt(row[2]) || 3,
+			// 	number: parseInt(row[3]) || 0,
+			// 	periodType: row[4] || 'REG',
+			// 	minutesElapsed: parseInt(row[5]) || 0,
+			// 	secondsElapsed: parseInt(row[6]) || 0,
+			// 	minutesRemaining: parseInt(row[7]) || 0,
+			// 	secondsRemaining: parseInt(row[8]) || 0,
+			// 	situationCode: row[9] || '',
+			// 	homeTeamDefendingSide: row[10] || '',
+			// 	typeCode: row[11] || '',
+			// 	zero: row[12] || '',
+			// 	sortOrder: parseInt(row[13]) || 0,
+			// 	xCoord: parseFloat(row[14]) || 0.0,
+			// 	yCoord: parseFloat(row[15]) || 0.0,
+			// 	zoneCode: row[16] || '',
+			// 	awayScore: parseInt(row[17]) || 0,
+			// 	awaySOG: parseInt(row[18]) || 0,
+			// 	homeScore: parseInt(row[19]) || 0,
+			// 	homeSOG: parseInt(row[20]) || 0,
+			// 	eventOwnerTeamId: row[21] || '',
+			// 	shotType: row[22] || '',
+			// 	playerId: parseInt(row[23]) || 0,
+			// 	shootingPlayerId: parseInt(row[24]) || 0,
+			// 	blockingPlayerId: parseInt(row[25]) || 0,
+			// 	goalieInNetId: parseInt(row[26]) || 0,
+			// 	winningPlayerId: parseInt(row[27]) || 0,
+			// 	losingPlayerId: parseInt(row[28]) || 0,
+			// 	committedByPlayerId: parseInt(row[29]) || 0,
+			// 	drawnByPlayerId: parseInt(row[30]) || 0,
+			// 	servedByPlayerId: parseInt(row[31]) || 0,
+			// 	hittingPlayerId: parseInt(row[32]) || 0,
+			// 	hitteePlayerId: parseInt(row[33]) || 0,
+			// 	descKey: row[34] || '',
+			// 	duration: parseInt(row[35]) || 0,
+			// 	reason: row[36] || '',
+			// 	secondaryReason: row[37] || '',
+			// 	scoringPlayerId: parseInt(row[38]) || 0,
+			// 	scoringPlayerTotal: parseInt(row[39]) || 0,
+			// 	assist1PlayerId: parseInt(row[40]) || 0,
+			// 	assist1PlayerTotal: parseInt(row[41]) || 0,
+			// 	assist2PlayerId: parseInt(row[42]) || 0,
+			// 	assist2PlayerTotal: parseInt(row[43]) || 0,
+			// 	// Add more fields as needed, replacing the index with the actual index of the column
+			// });
+
+			//  for players and edge data
+			batch.push({
+				season: row[0] || 'unknown',
+				playerId: row[1] || `${row[2]}-${row[3]}`,
+				first: row[2] || 'unknown',
+				last: row[3] || 'unknown',
+				position: row[4] || 'unknown',
+				shoots: row[5] || 'unknown',
+				team: row[6] || 'unknown',
+				jersey: parseInt(row[7] )|| 0,
+				gp: parseInt(row[8] )|| 0,
+				goals: parseInt(row[9] )|| 0,
+				assists: parseInt(row[10]) || 0,
+			})
+
+			// if (batch.length >= batchSize) {
+			//   // When we've collected enough rows, insert them and clear the batch
+			//   prisma.event.createMany({ data: batch }).then((e) => {console.log(e);}).catch((e) => {console.log(e);})
+			// 			;
+			// 	i += batch.length
+			//   batch = [];
+			// }
+
+			// players insert 
+			if (batch.length >= batchSize) {
+			  // When we've collected enough rows, insert them and clear the batch
+			  prisma.player.createMany({ data: batch }).then((e) => {console.log(e);}).catch((e) => {console.log(e);})
+						
+				i += batch.length
+			  batch = [];
+			}
+		})
+		.on('end', async () => {
+			// Insert any remaining rows
+			// if (batch.length > 0) {
+			//   await prisma.event.createMany({ data: batch });
+			// }
+			// console.log(`Processed ${i} rows`);
+
+			// players insert
+			if (batch.length > 0) {
+			  await prisma.player.createMany({ data: batch });
+			}
+
+			console.log(`Processed ${i} rows`);			
+			console.log('CSV file successfully processed')
+		})
+}
 
 // we're ok to import from the test directory in this file
 /*

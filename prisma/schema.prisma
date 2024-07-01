@@ -167,3 +167,87 @@ model Connection {
 
   @@unique([providerName, providerId])
 }
+
+model Player {
+  id       Int     @id @default(autoincrement())
+  playerId String
+  season   String
+  first    String
+  last     String
+  position String
+  shoots   String
+  team     String
+  jersey   Int
+  gp       Int
+  goals    Int
+  assists  Int
+  // shifts   Shift[]
+  // events   Event[]
+  Shift    Shift[]
+}
+
+model Shift {
+  id               Int      @id @default(autoincrement())
+  detailCode       String
+  gameId           String
+  teamId           String
+  period           Int
+  startTime        DateTime
+  duration         Int
+  endTime          DateTime
+  shiftNumber      Int
+  typeCode         String
+  eventNumber      Int
+  eventDescription String
+  player           Player   @relation(fields: [playerId], references: [id])
+  playerId         Int
+}
+
+model Event {
+  id                    Int    @id @default(autoincrement())
+  yrGm                  String
+  eventId               String
+  maxRegulationPeriods  Int    @default(3)
+  number                Int
+  periodType            String @default("REG")
+  minutesElapsed        Int
+  secondsElapsed        Int
+  minutesRemaining      Int
+  secondsRemaining      Int
+  situationCode         String
+  homeTeamDefendingSide String
+  typeCode              String
+  zero                  String
+  sortOrder             Int
+  xCoord                Float
+  yCoord                Float
+  zoneCode              String
+  awayScore             Int
+  awaySOG               Int
+  homeScore             Int
+  homeSOG               Int
+  eventOwnerTeamId      String
+  shotType              String
+  playerId              Int
+  shootingPlayerId      Int
+  blockingPlayerId      Int
+  goalieInNetId         Int
+  winningPlayerId       Int
+  losingPlayerId        Int
+  committedByPlayerId   Int
+  drawnByPlayerId       Int
+  servedByPlayerId      Int
+  hittingPlayerId       Int
+  hitteePlayerId        Int
+  descKey               String
+  duration              Int
+  reason                String
+  secondaryReason       String
+  scoringPlayerId       Int
+  scoringPlayerTotal    Int
+  assist1PlayerId       Int
+  assist1PlayerTotal    Int
+  assist2PlayerId       Int
+  assist2PlayerTotal    Int
+  // player                Player @relation(fields: [playerId], references: [id])
+}
