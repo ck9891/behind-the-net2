@@ -1,8 +1,8 @@
 import { json, type LoaderFunctionArgs } from '@remix-run/node'
 
-import { data } from '#app/data/edge_test.js'
 import { NavLink, useLoaderData } from '@remix-run/react'
-import { PlayerStats } from '#app/types/edge'
+import { Link } from 'lucide-react'
+import { StatsPopup } from '#app/components/stats-popup.js'
 import {
 	Table,
 	TableHeader,
@@ -13,8 +13,8 @@ import {
 	TableCell,
 	TableCaption,
 } from '#app/components/ui/table'
-import { StatsPopup } from '#app/components/stats-popup.js'
-import { Link } from 'lucide-react'
+import { data } from '#app/data/edge_test.js'
+import { type PlayerStats } from '#app/types/edge'
 
 function transformYear(year: number) {
   const year1 = year.toString().slice(0, 4)

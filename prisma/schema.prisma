@@ -169,7 +169,7 @@ model Connection {
 }
 
 model Player {
-  id       Int     @id @default(autoincrement())
+  id       Int    @id @default(autoincrement())
   playerId String
   season   String
   first    String
@@ -183,24 +183,27 @@ model Player {
   assists  Int
   // shifts   Shift[]
   // events   Event[]
-  Shift    Shift[]
+  // Shift    Shift[]
 }
 
 model Shift {
-  id               Int      @id @default(autoincrement())
+  id               Int    @id @default(autoincrement())
+  shiftId          Int
   detailCode       String
   gameId           String
   teamId           String
   period           Int
-  startTime        DateTime
+  startTime        Int
   duration         Int
-  endTime          DateTime
+  endTime          Int
   shiftNumber      Int
   typeCode         String
   eventNumber      Int
   eventDescription String
-  player           Player   @relation(fields: [playerId], references: [id])
-  playerId         Int
+  // player           Player @relation(fields: [playerId], references: [id])
+  playerId         String
+  // Player           Player @relation(fields: [playerId], references: [id])
+  // Player           Player? @relation(fields: [playerId], references: [id])
 }
 
 model Event {
@@ -250,4 +253,52 @@ model Event {
   assist2PlayerId       Int
   assist2PlayerTotal    Int
   // player                Player @relation(fields: [playerId], references: [id])
+}
+
+model EdgePlayerStats {
+  id                     Int    @id @default(autoincrement())
+  season                 Int
+  player                 Int
+  first                  String
+  last                   String
+  pos                    String
+  shoots                 String
+  team                   String
+  jersey                 Int
+  gp                     Int
+  g                      Int
+  a                      Int
+  skatingSpeed           Float
+  avgSkatingSpeed        Float
+  percentileSkatingSpeed Float
+  bursts22Plus           Int
+  avgBursts22Plus        Float
+  percentileBursts22Plus Float
+  bursts20To22           Int
+  avgBursts20To22        Float
+  percentileBursts20To22 Float
+  bursts18To20           Int
+  avgBursts18To20        Float
+  percentileBursts18To20 Float
+  oZone                  String
+  avgOZone               String
+  nZone                  String
+  avgNZone               String
+  dZone                  String
+  avgDZone               String
+  shotSpeed              Float
+  avgShotSpeed           Float
+  percentileShotSpeed    Float
+  speed100Plus           Int
+  avgSpeed100Plus        Float
+  percentileSpeed100Plus Float
+  speed90To100           Int
+  avgSpeed90To100        Float
+  percentileSpeed90To100 Float
+  speed80To90            Int
+  avgSpeed80To90         Float
+  percentileSpeed80To90  Float
+  speed70To80            Int
+  avgSpeed70To80         Float
+  percentileSpeed70To80  Float
 }

@@ -44,3 +44,17 @@ export interface PlayerStats {
   "Avg 70-80 Speed": number;
   "%ile 70-80 Speed": number;
 }
+
+export type Player = {
+  playerId: string
+  season:   string
+  first:    string
+  last:     string
+  position: string
+  shoots:   string
+  team:     string
+  jersey:   number
+  gp:       number
+  goals:    number
+  assists:  number
+}
