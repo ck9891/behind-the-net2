@@ -26,12 +26,23 @@ const rowClasses: Record<(typeof logos)[number]['row'], string> = {
 export default function Index() {
 	return (
 		<main className="font-poppins grid h-full place-items-center">
-			<div className='flex flex-col gap-4'>
-			<h1 className='text-2xl'>Coming Soon</h1>
-			<NavLink className='flex gap-2' to="/edge/players">
-				<Link />
-				Go to Edge
-			</NavLink>
+			<div className="flex flex-col gap-4">
+				<h1 className="text-2xl">Behind the Net</h1>
+				<div className="flex gap-2">
+					<NavLink className="flex gap-2" to="/players">
+						<Link />
+						Go to Players
+					</NavLink>
+					<NavLink className="flex gap-2" to="/teams">
+						<Link />
+						Go to Teams
+					</NavLink>
+					<NavLink className="flex gap-2" to="/about">
+						<Link />
+						About
+					</NavLink>
+
+				</div>
 			</div>
 		</main>
 	)
