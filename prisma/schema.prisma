@@ -167,3 +167,138 @@ model Connection {
 
   @@unique([providerName, providerId])
 }
+
+model Player {
+  id       Int    @id @default(autoincrement())
+  playerId String
+  season   String
+  first    String
+  last     String
+  position String
+  shoots   String
+  team     String
+  jersey   Int
+  gp       Int
+  goals    Int
+  assists  Int
+  // shifts   Shift[]
+  // events   Event[]
+  // Shift    Shift[]
+}
+
+model Shift {
+  id               Int    @id @default(autoincrement())
+  shiftId          Int
+  detailCode       String
+  gameId           String
+  teamId           String
+  period           Int
+  startTime        Int
+  duration         Int
+  endTime          Int
+  shiftNumber      Int
+  typeCode         String
+  eventNumber      Int
+  eventDescription String
+  // player           Player @relation(fields: [playerId], references: [id])
+  playerId         String
+  // Player           Player @relation(fields: [playerId], references: [id])
+  // Player           Player? @relation(fields: [playerId], references: [id])
+}
+
+model Event {
+  id                    Int    @id @default(autoincrement())
+  yrGm                  String
+  eventId               String
+  maxRegulationPeriods  Int    @default(3)
+  number                Int
+  periodType            String @default("REG")
+  minutesElapsed        Int
+  secondsElapsed        Int
+  minutesRemaining      Int
+  secondsRemaining      Int
+  situationCode         String
+  homeTeamDefendingSide String
+  typeCode              String
+  zero                  String
+  sortOrder             Int
+  xCoord                Float
+  yCoord                Float
+  zoneCode              String
+  awayScore             Int
+  awaySOG               Int
+  homeScore             Int
+  homeSOG               Int
+  eventOwnerTeamId      String
+  shotType              String
+  playerId              Int
+  shootingPlayerId      Int
+  blockingPlayerId      Int
+  goalieInNetId         Int
+  winningPlayerId       Int
+  losingPlayerId        Int
+  committedByPlayerId   Int
+  drawnByPlayerId       Int
+  servedByPlayerId      Int
+  hittingPlayerId       Int
+  hitteePlayerId        Int
+  descKey               String
+  duration              Int
+  reason                String
+  secondaryReason       String
+  scoringPlayerId       Int
+  scoringPlayerTotal    Int
+  assist1PlayerId       Int
+  assist1PlayerTotal    Int
+  assist2PlayerId       Int
+  assist2PlayerTotal    Int
+  // player                Player @relation(fields: [playerId], references: [id])
+}
+
+model EdgePlayerStats {
+  id                     Int    @id @default(autoincrement())
+  season                 Int
+  player                 Int
+  first                  String
+  last                   String
+  pos                    String
+  shoots                 String
+  team                   String
+  jersey                 Int
+  gp                     Int
+  g                      Int
+  a                      Int
+  skatingSpeed           Float
+  avgSkatingSpeed        Float
+  percentileSkatingSpeed Float
+  bursts22Plus           Int
+  avgBursts22Plus        Float
+  percentileBursts22Plus Float
+  bursts20To22           Int
+  avgBursts20To22        Float
+  percentileBursts20To22 Float
+  bursts18To20           Int
+  avgBursts18To20        Float
+  percentileBursts18To20 Float
+  oZone                  String
+  avgOZone               String
+  nZone                  String
+  avgNZone               String
+  dZone                  String
+  avgDZone               String
+  shotSpeed              Float
+  avgShotSpeed           Float
+  percentileShotSpeed    Float
+  speed100Plus           Int
+  avgSpeed100Plus        Float
+  percentileSpeed100Plus Float
+  speed90To100           Int
+  avgSpeed90To100        Float
+  percentileSpeed90To100 Float
+  speed80To90            Int
+  avgSpeed80To90         Float
+  percentileSpeed80To90  Float
+  speed70To80            Int
+  avgSpeed70To80         Float
+  percentileSpeed70To80  Float
+}
