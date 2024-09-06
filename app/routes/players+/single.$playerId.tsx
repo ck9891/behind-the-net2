@@ -1,7 +1,8 @@
 import { invariantResponse } from '@epic-web/invariant'
 import { type Shift } from '@prisma/client'
 import { type LoaderFunctionArgs, json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { NavLink, Outlet, useLoaderData } from '@remix-run/react'
+import { Link } from 'lucide-react'
 import { StatsPopup } from '#app/components/stats-popup.js'
 import {
 	Table,
@@ -12,7 +13,12 @@ import {
 	TableCaption,
 } from '#app/components/ui/table'
 import { type Player } from '#app/types/edge.js'
-import { type PlayerShot, getPlayer, getPlayerEvents, getPlayerShots, getPlayerShifts} from './players.server'
+import {
+	type PlayerShot,
+	getPlayer,
+	getPlayerEvents,
+	getPlayerShots,
+} from './players.server'
 // async function getTeamSchedule(team: string, season: number) {
 // 	// get the entire year's schedule by default
 // 	let url = `https://api-web.nhle.com/v1/club-schedule-season/${team}/${season}`
@@ -79,63 +85,21 @@ import { type PlayerShot, getPlayer, getPlayerEvents, getPlayerShots, getPlayerS
 // 	return playerStats
 // }
 
-
-interface CategorizedShots {
-  reallyClose: PlayerShot[];
-  close: PlayerShot[];
-  notSoClose: PlayerShot[];
-}
-
-export function sortAndCategorizePlayerShots(shots: PlayerShot[]): CategorizedShots {
-  // Calculate the distance from the origin for each shot
-  shots.forEach(shot => {
-    shot.distance = Math.sqrt(shot.xCoord ** 2 + shot.yCoord ** 2);
-  });
-
-  // Sort the shots based on their distance from the origin
-  shots.sort((a, b) => a.distance! - b.distance!);
-
-  // Categorize the shots
-  const categorizedShots: CategorizedShots = {
-    reallyClose: [],
-    close: [],
-    notSoClose: []
-  };
-
-  shots.forEach(shot => {
-    if (shot.distance! <= 10) {
-      categorizedShots.reallyClose.push(shot);
-    } else if (shot.distance! <= 20) {
-      categorizedShots.close.push(shot);
-    } else {
-      categorizedShots.notSoClose.push(shot);
-    }
-  });
-
-  return categorizedShots;
-}
-
 export async function loader({ params }: LoaderFunctionArgs) {
-	console.log({ params })
 	try {
 		const { playerId } = params
 
 		if (!playerId) {
-			return invariantResponse('No player provided', { status:  '400 '})
+			return invariantResponse('No player provided', { status: '400 ' })
 		}
 
-    const playerLandingData: Player[] = await getPlayer(playerId);
-		const playerEvents: PlayerShot[] = await getPlayerShots(playerId);
-		const playerShifts: Shift[] = await getPlayerShifts(playerId);
+		const playerLandingData: Player[] = await getPlayer(playerId)
 		// console.log(playerEvents);
 
-		const allOtherEvents = await getPlayerEvents(playerId);
-		
-		console.log(allOtherEvents);	
-		const playerShots = sortAndCategorizePlayerShots(playerEvents);
+		const allOtherEvents = await getPlayerEvents(playerId)
 
-    return json({ playerLandingData, playerEvents: [...playerShots.close, ...playerShots.reallyClose, ...playerShots.notSoClose], allOtherEvents, playerShifts });
 
+		return json({ playerLandingData, allOtherEvents })
 	} catch (error) {
 		console.log({ error })
 	}
@@ -143,28 +107,25 @@ export async function loader({ params }: LoaderFunctionArgs) {
 }
 
 export function PlayerTable({ player }: { player: Player[] }) {
-
 	return (
-		<Table
-			aria-label="Player Stats"
-		>
+		<Table aria-label="Player Stats">
 			<TableCaption>Player Stats</TableCaption>
-				<TableRow>
-					<TableCell>Season</TableCell>
-					<TableCell>First</TableCell>
-					<TableCell>Last</TableCell>
-					<TableCell>Position</TableCell>
-					<TableCell>Shoots</TableCell>
-					<TableCell>Team</TableCell>
-					<TableCell>Jersey</TableCell>
-					<TableCell>GP</TableCell>
-					<TableCell>G</TableCell>
-					<TableCell>A</TableCell>
-				</TableRow>
+			<TableRow>
+				<TableCell>Season</TableCell>
+				<TableCell>First</TableCell>
+				<TableCell>Last</TableCell>
+				<TableCell>Position</TableCell>
+				<TableCell>Shoots</TableCell>
+				<TableCell>Team</TableCell>
+				<TableCell>Jersey</TableCell>
+				<TableCell>GP</TableCell>
+				<TableCell>G</TableCell>
+				<TableCell>A</TableCell>
+			</TableRow>
 			<TableBody>
 				{player.map((p: Player, i) => (
 					<TableRow key={`${i}-${p.season}`}>
-						<TableCell className='w-10'>{p.season}</TableCell>
+						<TableCell className="w-10">{p.season}</TableCell>
 						<TableCell>{p.first}</TableCell>
 						<TableCell>{p.last}</TableCell>
 						<TableCell>{p.position}</TableCell>
@@ -176,64 +137,33 @@ export function PlayerTable({ player }: { player: Player[] }) {
 						<TableCell>{p.assists}</TableCell>
 					</TableRow>
 				))}
-				</TableBody>
-			</Table>
-	)
-
-}
-
-export function PlayerShotsTable({ playerShots }: { playerShots: PlayerShot[] }) {
-	return (
-		<Table
-			aria-label="Player Shots"
-		>
-			<TableCaption>Player Shots</TableCaption>
-				<TableRow>
-					<TableCell>xCoord</TableCell>
-					<TableCell>yCoord</TableCell>
-					<TableCell>yrGm</TableCell>
-					<TableCell>eventId</TableCell>
-					<TableCell>id</TableCell>
-					<TableCell>periodType</TableCell>
-					<TableCell>situationCode</TableCell>
-					<TableCell>distance</TableCell>
-				</TableRow>
-			<TableBody>
-				{playerShots.map((p: PlayerShot, i) => (
-					<TableRow key={`${i}-${p.id}`}>
-						<TableCell>{p.xCoord}</TableCell>
-						<TableCell>{p.yCoord}</TableCell>
-						<TableCell>{p.yrGm}</TableCell>
-						<TableCell>{p.eventId}</TableCell>
-						<TableCell>{p.id}</TableCell>
-						<TableCell>{p.periodType}</TableCell>
-						<TableCell>{p.situationCode}</TableCell>
-						<TableCell>{p.distance}</TableCell>
-					</TableRow>
-				))}
-				</TableBody>
-			</Table>
+			</TableBody>
+		</Table>
 	)
 }
 
 export default function PlayerRoute() {
-	const { playerLandingData, playerEvents, allOtherEvents, playerShifts } = useLoaderData<typeof loader>()
-	const [player] = playerLandingData;
+	const { playerLandingData } = useLoaderData<typeof loader>()
+	const [player] = playerLandingData
 	return (
-		<div className="mx-auto flex h-full w-ful0l max-w-5xl flex-col justify-center gap-4 p-4">
+		<div className="w-ful0l mx-auto flex h-full max-w-5xl flex-col justify-center gap-4 p-4">
 			<h1 className="mb-4 text-3xl">
 				{player.first} {player.last}
 			</h1>
 			<PlayerTable player={playerLandingData} />
-			<div className="w-full max-w-5xl mx-auto">
-			<h2>Player Events</h2>
-			<h3>Player Shots</h3>
-			<p>Number of Shots {playerEvents.length}</p>
+			<div className="mx-auto w-full max-w-5xl my-8">
+				<nav className='flex gap-4 justify-center'>
+			<NavLink to={`/players/single/${player.playerId}/shots`} className="text-body-sm bg-foreground/65 text-background border p-4 radius-2 hover:bg-foreground transition-all border-muted-foreground active:bg-foreground/75">
+				View Shots
+			</NavLink>
+			<NavLink to={`/players/single/${player.playerId}/shifts`} className="text-body-sm bg-foreground/65 text-background border p-4 radius-2 hover:bg-foreground transition-all border-muted-foreground">
+				View Shifts
+			</NavLink>
+			<NavLink to={`/players/single/${player.playerId}/edge`} className="text-body-sm bg-foreground/65 text-background border p-4 radius-2 hover:bg-foreground transition-all border-muted-foreground">View Edge Data</NavLink>
+			</nav>
+				<Outlet />
 
-			<h3>Player Shifts</h3>
-			<p>Number of Shifts {playerShifts.length}</p>
-		
-			<PlayerShotsTable playerShots={playerEvents} />
+
 			</div>
 		</div>
 	)

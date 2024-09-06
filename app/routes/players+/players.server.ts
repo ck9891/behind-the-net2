@@ -1,4 +1,4 @@
-import { type Shift } from "@prisma/client";
+import { type EdgePlayerStats, type Shift } from "@prisma/client";
 import { type Player } from "#app/types/edge.ts"
 import { prisma } from "#app/utils/db.server.js";
 
@@ -12,15 +12,39 @@ export type PlayersRequest = {
   page?: number
   skip?: number
   year?: string
+  season?: string
+  team?: string
+  position?: string,
+  firstName?: string,
+  lastName?: string
 }
 
-export async function getPlayers({ page, skip }: PlayersRequest): Promise<Player[]> {
+export async function getPlayers({ page, skip, season, team, position, firstName, lastName }: PlayersRequest): Promise<Player[]> {
+  
+  const where = {
+    season: season || previousSeason,
+  }
+  
+  if (team) {
+    where.team = team
+  }
+
+  if (position) {
+    where.position = position
+  }
+
+  if (firstName) {
+    where.first = { contains: firstName }
+  }
+
+  if (lastName) {
+    where.last = { contains: lastName }
+  }
+
   return prisma.player.findMany({
     take: page || 25,
     skip: skip || 0,
-    where: {
-      season: previousSeason
-    }
+    where
   });
 }
 
@@ -97,6 +121,14 @@ export async function getPlayerShifts(playerId: string): Promise<Shift[]> {
   return prisma.shift.findMany({
     where: {
       playerId: playerId
+    },
+  });
+}
+
+export async function getEdgePlayerStats(playerId: string): Promise<EdgePlayerStats[]> {
+  return prisma.edgePlayerStats.findMany({
+    where: {
+      player: parseInt(playerId)
     },
   });
 }

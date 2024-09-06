@@ -1,8 +1,18 @@
-import { json, type LoaderFunctionArgs } from '@remix-run/node'
+import { type ActionFunctionArgs, json, type LoaderFunctionArgs } from '@remix-run/node'
 
-import { NavLink, useLoaderData } from '@remix-run/react'
+import { Form, NavLink, useActionData, useLoaderData, useSubmit } from '@remix-run/react'
 import { Link } from 'lucide-react'
+import React from 'react'
 import { StatsPopup } from '#app/components/stats-popup.js'
+import { Button } from '#app/components/ui/button.js'
+import { Input } from '#app/components/ui/input.js'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "#app/components/ui/select"
 import {
 	Table,
 	TableBody,
@@ -12,6 +22,7 @@ import {
 	TableCaption,
 } from '#app/components/ui/table'
 
+
 import { getPlayers } from './players.server'
 
 function transformYear(year: string) {
@@ -19,6 +30,20 @@ function transformYear(year: string) {
   const year2 = year.toString().slice(4, 8)
   return `${year1}-${year2}`
 }
+
+export async function action({ request }: ActionFunctionArgs) {
+  const formData = await request.formData()
+  const season = formData.get('season')
+  const team = formData.get('team')
+  const position = formData.get('position')
+  const firstName = formData.get('first-name')
+  const lastName = formData.get('last-name')
+  const page = parseInt(formData.get('number-of-players')) || 50;
+  const players = await getPlayers({ page, skip: 0, season, team, position, firstName, lastName })
+  console.log(players)
+  return json({ players })
+}
+
 export async function loader({ request }: LoaderFunctionArgs) {
   const players = await getPlayers({ page: 50, skip: 0 })
 	return json({ edgePlayerData: players })
@@ -26,9 +51,75 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
 export default function EdgePlayersRoute() {
 	const { edgePlayerData } = useLoaderData<typeof loader>()
+  const actionData = useActionData<typeof action>()
+  const filteredPlayers = actionData?.players
+
+  const players = filteredPlayers || edgePlayerData
+
+  const submit = useSubmit();
+
+  const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
+    const form = event.currentTarget.form;
+    if (form) {
+      submit(form);
+    }
+  }, [submit]);
 
 	return (
     <div className='w-11/12 mx-auto rounded-md bg-foreground text-background p-4 shadow-slate-800 shadow-sm'>
+      <Form method='POST' className='flex flex-col md:flex-row gap-4 items-center mb-4'>
+        <p className='text-body-md text-muted-foreground'>Filters:</p>
+        <Input name="first-name" placeholder="First Name" className='bg-foreground' onChange={handleChange} />
+        <Input name="last-name" placeholder="Last Name" className='bg-foreground' onChange={handleChange} />
+        <Select name='season'>
+          <SelectTrigger>
+            <SelectValue placeholder='Select a season…' />
+            <SelectContent>
+              <SelectItem value='20222023'>2023</SelectItem>
+              <SelectItem value='20212022'>2022</SelectItem>
+              <SelectItem value='20202021'>2021</SelectItem>
+            </SelectContent>
+          </SelectTrigger>
+          </Select>
+          <Select name="team">
+            <SelectTrigger>
+              <SelectValue placeholder='Select a team…' />
+              <SelectContent>
+                <SelectItem value='VAN'>VAN</SelectItem>
+                <SelectItem value='NYR'>NYR</SelectItem>
+                <SelectItem value='PHI'>PHI</SelectItem>
+                <SelectItem value='TBL'>TBL</SelectItem>
+              </SelectContent>
+              </SelectTrigger>
+          </Select>
+          <Select name="position">
+            <SelectTrigger>
+              <SelectValue placeholder='Select a position…' />
+              <SelectContent>
+                <SelectItem value='C'>C</SelectItem>
+                <SelectItem value='LW'>LW</SelectItem>
+                <SelectItem value='RW'>RW</SelectItem>
+                <SelectItem value='D'>D</SelectItem>
+
+              </SelectContent>
+            </SelectTrigger>
+            </Select>
+            <Select name="number-of-players">
+              <SelectTrigger>
+                <SelectValue placeholder='Select a number of players…' />
+                <SelectContent>
+                  <SelectItem value='10'>10</SelectItem>
+                  <SelectItem value='25'>25</SelectItem>
+                  <SelectItem value='50'>50</SelectItem>
+                  <SelectItem value='100'>100</SelectItem>
+                  <SelectItem value='250'>250</SelectItem>
+                  <SelectItem value='500'>500</SelectItem>
+                  <SelectItem value='1000'>1000</SelectItem>
+                  </SelectContent>
+              </SelectTrigger>
+            </Select>
+          <Button className='w-full md:w-auto' type='submit'>Filter</Button>
+      </Form>
       <Table>
         <TableCaption className='mb-4 text-background'>Player Edge Stats</TableCaption>
         <TableRow>
@@ -43,7 +134,7 @@ export default function EdgePlayersRoute() {
           <TableHead>Assists</TableHead>
         </TableRow>
         <TableBody>
-          {edgePlayerData.map(player => (
+          {players.map(player => (
             <>
               <TableRow key={player.playerId}>
                 <TableCell className='w-[100px]'>{transformYear(player.season)}</TableCell>
