@@ -29,8 +29,20 @@ jobs:
       - name: Reset local database
         run: npx prisma migrate reset --skip-seed --force
 
+      - name: Create prod-seed.local.ts if it doesn't exist
+        run: |
+          if [ ! -f ./prod-seed.local.ts ]; then
+            cp ./prisma/seed.ts ./prod-seed.local.ts
+            echo "Created prod-seed.local.ts from prisma/seed.ts"
+          else
+            echo "prod-seed.local.ts already exists"
+          fi
+
+      - name: Compile TypeScript
+        run: npx tsc
+
       - name: Run custom seed script
-        run: npx tsx ./prod-seed.local.ts
+        run: node ./prod-seed.local.js
 
       - name: Create SQL dump
         run: sqlite3 ./seed.local.db .dump > seed.local.sql
