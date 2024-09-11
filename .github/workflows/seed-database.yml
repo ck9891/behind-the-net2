@@ -22,7 +22,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
+          node-version: '20'
 
       - name: Install dependencies
         run: npm ci
@@ -58,15 +58,21 @@ jobs:
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         run: |
-          # /home/runner/.fly/bin/flyctl tokens create > flytoken.txt
-          # FLYTOKEN=$(cat flytoken.txt)
           /home/runner/.fly/bin/flyctl auth token $FLY_API_TOKEN
 
-          # Upload the SQL dump
-          /home/runner/.fly/bin/flyctl sftp shell < ./upload_seed.sh
+          # Create a temporary script file to execute the SQL commands
+          echo "sqlite3 /data/sqlite.db < /tmp/seed.local.sql" > /tmp/execute_seed.sh
+          chmod +x /tmp/execute_seed.sh
 
-          # Apply the SQL dump
-          /home/runner/.fly/bin/flyctl ssh console -C "sqlite3 /data/sqlite.db < /tmp/seed.local.sql"
+          # Upload the SQL dump and the temporary script file
+          /home/runner/.fly/bin/flyctl sftp shell <<EOF
+          put seed.local.sql /tmp/seed.local.sql
+          put /tmp/execute_seed.sh /tmp/execute_seed.sh
+          bye
+          EOF
+
+          # Execute the temporary script file within the Fly.io environment
+          /home/runner/.fly/bin/flyctl ssh console -C "sh /tmp/execute_seed.sh"
 
       # - name: Upload SQL dump as artifact
       #   uses: actions/upload-artifact@v2
