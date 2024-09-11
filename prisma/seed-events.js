@@ -5,7 +5,7 @@ import csv from 'csv-parser'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
-import { prisma } from '#app/utils/db.server.ts'
+import { prisma } from '#app/utils/db.server.js'
 
 const batchSize = 500 // Adjust this value based on your system's performance
 
@@ -14,26 +14,13 @@ const eventFiles = ['events2021.csv', 'events2022.csv', 'events2023.csv']
 
 async function main() {
 	try {
-		console.log('🌱 Seeding...')
+		console.log('🌱 Seeding events...')
 		console.time(`🌱 Database has been seeded`)
-
-		await seedPlayers()
-		console.log('Players seeded')
-		
-		await seedEdgePlayerStats('player_list_edge_all.csv')
-		console.log('Edge Player Stats seeded')
-
-		for (const file of shiftFiles) {
-			await seedShifts(file)
-			console.log(`Shifts seeded for ${file}`)
-		}
 
 		for (const file of eventFiles) {
 			await seedEvents(file)
 			console.log(`Events seeded for ${file}`)
 		}
-
-	
 
 		console.timeEnd(`🌱 Database has been seeded`)
 	} catch (e) {
@@ -61,7 +48,7 @@ async function seedPlayers() {
 	}))
 }
 
-async function seedShifts(filename: string) {
+async function seedShifts(filename) {
 	// if row[12] equals '' or undefined, it will be null
 
 	await processCSV(filename, 'shift', row => {
@@ -88,7 +75,7 @@ async function seedShifts(filename: string) {
 	})
 }
 
-async function seedEvents(filename: string) {
+async function seedEvents(filename) {
 	await processCSV(filename, 'event', row => ({
 		yrGm: row[0] || '',
 		eventId: row[1] || '',
@@ -137,7 +124,7 @@ async function seedEvents(filename: string) {
 	}))
 }
 
-async function seedEdgePlayerStats(filename: string) {
+async function seedEdgePlayerStats(filename) {
 	await processCSV(filename, 'edgePlayerStats', row => ({
 		season: parseInt(row[0]) || 0,
 		player: parseInt(row[1]) || 0,
@@ -187,12 +174,12 @@ async function seedEdgePlayerStats(filename: string) {
 }
 
 async function processCSV(
-	filename: string,
-	model: string,
-	rowProcessor: (row: any) => any,
+	filename,
+	model,
+	rowProcessor,
 ) {
 	return new Promise((resolve, reject) => {
-		let batch: any[] = []
+		let batch = []
 		let i = 0
 		fs.createReadStream(path.join(__dirname, `../seedData/${filename}`))
 			.pipe(csv({ headers: false }))
