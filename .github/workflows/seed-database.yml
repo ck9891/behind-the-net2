@@ -32,8 +32,8 @@ jobs:
       - name: Create prod-seed.local.ts if it doesn't exist
         run: |
           if [ ! -f ./prod-seed.local.ts ]; then
-            cp ./prisma/seed.ts ./prod-seed.local.ts
-            echo "Created prod-seed.local.ts from prisma/seed.ts"
+            cp ./prisma/seed.js ./prod-seed.local.ts
+            echo "Created prod-seed.local.ts from prisma/seed.js"
           else
             echo "prod-seed.local.ts already exists"
           fi
