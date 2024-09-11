@@ -1,0 +1,38 @@
+[
+  {
+    "code": "MOCK_CODE_GITHUB_KODY",
+    "accessToken": "MOCK_CODE_GITHUB_KODY_mock_access_token",
+    "profile": {
+      "login": "Rosario.Leannon",
+      "id": "889ec840-84f2-4a14-b739-664bae057b8f",
+      "name": "Ollie Waters",
+      "avatar_url": "https://github.com/ghost.png",
+      "emails": [
+        "Cameron_Ledner@yahoo.com",
+        "Cara.Wolff70@hotmail.com",
+        "Keanu.Sipes@gmail.com"
+      ]
+    },
+    "emails": [
+      {
+        "email": "Cameron_Ledner@yahoo.com",
+        "verified": false,
+        "primary": false,
+        "visibility": "public"
+      },
+      {
+        "email": "Cara.Wolff70@hotmail.com",
+        "verified": true,
+        "primary": false,
+        "visibility": null
+      },
+      {
+        "email": "Keanu.Sipes@gmail.com",
+        "verified": true,
+        "primary": true,
+        "visibility": null
+      }
+    ],
+    "primaryEmail": "Keanu.Sipes@gmail.com"
+  }
+]
