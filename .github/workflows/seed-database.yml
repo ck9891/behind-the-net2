@@ -1,10 +1,14 @@
 name: Seed Database
 
+# on:
+#   workflow_dispatch:
 on:
-  workflow_dispatch:
   push:
     branches:
-      - 'data/seed-*'
+      - main
+  # push:
+  #   branches:
+  #     - 'data/seed-*'
 
 jobs:
   seed-database:
@@ -29,13 +33,13 @@ jobs:
       - name: Reset local database
         run: npx prisma migrate reset --skip-seed --force
 
-      - name: Create prod-seed.local.ts if it doesn't exist
+      - name: Create prod-seed.local.js if it doesn't exist
         run: |
-          if [ ! -f ./prod-seed.local.ts ]; then
-            cp ./prisma/seed.ts ./prod-seed.local.ts
-            echo "Created prod-seed.local.ts from prisma/seed.ts"
+          if [ ! -f ./prod-seed.local.js ]; then
+            cp ./prisma/seed.js ./prod-seed.local.js
+            echo "Created prod-seed.local.js from prisma/seed.js"
           else
-            echo "prod-seed.local.ts already exists"
+            echo "prod-seed.local.js already exists"
           fi
 
       - name: Compile TypeScript
