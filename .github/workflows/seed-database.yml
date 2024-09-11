@@ -6,10 +6,6 @@ on:
     branches:
       - 'data/seed-*'
 
-  # Uncomment the following lines to enable scheduled runs
-  # schedule:
-  #   - cron: '0 0 * * 0'  # Run weekly at midnight on Sunday
-
 jobs:
   seed-database:
     runs-on: ubuntu-latest
@@ -22,7 +18,7 @@ jobs:
       - name: Use Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18' # Adjust this to your project's Node.js version
+          node-version: '20'
 
       - name: Install dependencies
         run: npm ci
@@ -37,7 +33,13 @@ jobs:
         run: npx prisma db seed
 
       - name: Export database to SQL
-        run: sqlite3 $DATABASE_URL .dump > dump.sql
+        run: |
+          echo ".mode insert" > dump.sql
+          echo ".bail on" >> dump.sql
+          echo "BEGIN TRANSACTION;" >> dump.sql
+          sqlite3 $DATABASE_URL ".schema" | grep -v "sqlite_sequence" >> dump.sql
+          sqlite3 $DATABASE_URL ".dump" | grep "^INSERT" >> dump.sql
+          echo "COMMIT;" >> dump.sql
 
       - name: Install Fly.io CLI
         run: curl -L https://fly.io/install.sh | sh
@@ -47,12 +49,10 @@ jobs:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
         run: |
           /home/runner/.fly/bin/flyctl auth token $FLY_API_TOKEN
-          /home/runner/.fly/bin/flyctl ssh console --command "sqlite3 /data/sqlite.db < /app/dump.sql"
+          /home/runner/.fly/bin/flyctl ssh console -C "sqlite3 /data/sqlite.db < /dev/stdin" < dump.sql
 
-      - name: Commit and push if there are changes
-        run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          git add .
-          git commit -m "Update database after seeding" -a || echo "No changes to commit"
-          git push
+      - name: Upload SQL dump as artifact
+        uses: actions/upload-artifact@v2
+        with:
+          name: database-dump
+          path: dump.sql
