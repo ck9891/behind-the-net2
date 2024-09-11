@@ -38,9 +38,6 @@ jobs:
             echo "prod-seed.local.js already exists"
           fi
 
-      - name: Compile TypeScript
-        run: npx tsc
-
       - name: Run custom seed script
         run: node ./prod-seed.local.js
 
