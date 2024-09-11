@@ -67,8 +67,8 @@ jobs:
           # Apply the SQL dump
           /home/runner/.fly/bin/flyctl ssh console -C "sqlite3 /data/sqlite.db < /tmp/seed.local.sql"
 
-      - name: Upload SQL dump as artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: database-dump
-          path: seed.local.sql
+      # - name: Upload SQL dump as artifact
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: database-dump
+      #     path: seed.local.sql
