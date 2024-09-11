@@ -45,7 +45,7 @@ async function main() {
 }
 
 async function seedPlayers() {
-	const filename = './seedData/player_list_edge_all.csv'
+	const filename = 'player_list_edge_all.csv'
 	await processCSV(filename, 'player', row => ({
 		season: row[0] || 'unknown',
 		playerId: row[1] || `${row[2]}-${row[3]}`,
