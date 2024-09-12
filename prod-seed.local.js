@@ -205,7 +205,7 @@ async function seedEdgePlayerStats(filename) {
 
 async function* csvRows(filename) {
   const parser = createReadStream(filename).pipe(parse({
-    columns: true,
+    columns: false,
     skip_empty_lines: true
   }))
   for await (const record of parser) {
