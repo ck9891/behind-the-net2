@@ -1,8 +1,14 @@
-import fs from 'fs'
+import fs, { createReadStream } from 'fs'
+
+
+
+
+
 import path, { dirname } from 'path'
 import { fileURLToPath } from 'url'
 import { PrismaClient } from '@prisma/client'
-import csv from 'csv-parser'
+import { parse } from 'csv-parse'
+// import csv from 'csv-parser'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
