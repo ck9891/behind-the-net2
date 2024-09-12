@@ -83,7 +83,7 @@ async function seedShifts(filename) {
 
 	await processCSV(filename, 'shift', row => {
 		// console.log('shift row:')
-		// console.log(row)
+		console.log(row)
 		// console.log(Object.keys(row).length)
 		
 		// console.table(row)
