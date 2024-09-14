@@ -7,26 +7,16 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 import { prisma } from '#app/utils/db.server.js'
 
-const batchSize = 750 // Adjust this value based on your system's performance
+const batchSize = 2000 // Adjust this value based on your system's performance
 
 const shiftFiles = ['shifts2021.csv', 'shifts2022.csv', 'shifts2023.csv']
-const eventFiles = [ 'events2023.csv']
+const eventFiles = ['events2021.csv']
 
 async function main() {
 	try {
 		console.log('🌱 Seeding...')
 		console.time(`🌱 Database has been seeded`)
 
-		// await seedPlayers()
-		// console.log('Players seeded')
-		
-		// await seedEdgePlayerStats('player_list_edge_all.csv')
-		// console.log('Edge Player Stats seeded')
-
-		// for (const file of shiftFiles) {
-		// 	await seedShifts(file)
-		// 	console.log(`Shifts seeded for ${file}`)
-		// }
 
 		for (const file of eventFiles) {
 			await seedEvents(file)
@@ -205,7 +195,7 @@ async function retryTransaction(operation, maxRetries = 3) {
   }
 }
 
-async function processCSVInChunks(filename, model, rowProcessor, chunkSize = 5000) {
+async function processCSVInChunks(filename, model, rowProcessor, chunkSize = 10000) {
   let rows = [];
   let processedRows = 0;
   
@@ -243,19 +233,19 @@ async function ensureConnection() {
 }
 
 // In the processChunk function:
-// async function processChunk(rows, model) {
-//   let processed = 0;
-//   for (let i = 0; i < rows.length; i += batchSize) {
-//     const batch = rows.slice(i, i + batchSize);
-//     try {
-//       await prisma[model].createMany({ data: batch });
-//       processed += batch.length;
-//     } catch (error) {
-//       console.error(`Error inserting batch for ${model}:`, error);
-//     }
-//   }
-//   return processed;
-// }
+async function processChunk(rows, model) {
+  let processed = 0;
+  for (let i = 0; i < rows.length; i += batchSize) {
+    const batch = rows.slice(i, i + batchSize);
+    try {
+      await prisma[model].createMany({ data: batch });
+      processed += batch.length;
+    } catch (error) {
+      console.error(`Error inserting batch for ${model}:`, error);
+    }
+  }
+  return processed;
+}
 // async function processChunk(rows, model) {
 //   let processed = 0;
 //   for (let i = 0; i < rows.length; i += batchSize) {
@@ -272,18 +262,18 @@ async function ensureConnection() {
 //   }
 //   return processed;
 // }
-async function processChunk(rows, model) {
-  let processed = 0;
-  for (let i = 0; i < rows.length; i += batchSize) {
-    await ensureConnection()
-    const batch = rows.slice(i, i + batchSize);
-    await retryTransaction(async (tx) => {
-      await tx[model].createMany({ data: batch });
-      processed += batch.length;
-    });
-  }
-  return processed;
-}
+// async function processChunk(rows, model) {
+//   let processed = 0;
+//   for (let i = 0; i < rows.length; i += batchSize) {
+//     await ensureConnection()
+//     const batch = rows.slice(i, i + batchSize);
+//     await retryTransaction(async (tx) => {
+//       await tx[model].createMany({ data: batch });
+//       processed += batch.length;
+//     });
+//   }
+//   return processed;
+// }
 
 // async function processCSV1(filename, model, rowProcessor) {
 //   return new Promise((resolve, reject) => {
