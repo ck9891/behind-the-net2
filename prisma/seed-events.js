@@ -233,19 +233,19 @@ async function ensureConnection() {
 }
 
 // In the processChunk function:
-// async function processChunk(rows, model) {
-//   let processed = 0;
-//   for (let i = 0; i < rows.length; i += batchSize) {
-//     const batch = rows.slice(i, i + batchSize);
-//     try {
-//       await prisma[model].createMany({ data: batch });
-//       processed += batch.length;
-//     } catch (error) {
-//       console.error(`Error inserting batch for ${model}:`, error);
-//     }
-//   }
-//   return processed;
-// }
+async function processChunk(rows, model) {
+  let processed = 0;
+  for (let i = 0; i < rows.length; i += batchSize) {
+    const batch = rows.slice(i, i + batchSize);
+    try {
+      await prisma[model].createMany({ data: batch });
+      processed += batch.length;
+    } catch (error) {
+      console.error(`Error inserting batch for ${model}:`, error);
+    }
+  }
+  return processed;
+}
 // async function processChunk(rows, model) {
 //   let processed = 0;
 //   for (let i = 0; i < rows.length; i += batchSize) {
@@ -262,18 +262,18 @@ async function ensureConnection() {
 //   }
 //   return processed;
 // }
-async function processChunk(rows, model) {
-  let processed = 0;
-  for (let i = 0; i < rows.length; i += batchSize) {
-    await ensureConnection()
-    const batch = rows.slice(i, i + batchSize);
-    await retryTransaction(async (tx) => {
-      await tx[model].createMany({ data: batch });
-      processed += batch.length;
-    });
-  }
-  return processed;
-}
+// async function processChunk(rows, model) {
+//   let processed = 0;
+//   for (let i = 0; i < rows.length; i += batchSize) {
+//     await ensureConnection()
+//     const batch = rows.slice(i, i + batchSize);
+//     await retryTransaction(async (tx) => {
+//       await tx[model].createMany({ data: batch });
+//       processed += batch.length;
+//     });
+//   }
+//   return processed;
+// }
 
 // async function processCSV1(filename, model, rowProcessor) {
 //   return new Promise((resolve, reject) => {
