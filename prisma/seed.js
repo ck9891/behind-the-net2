@@ -247,11 +247,8 @@ async function processChunk(rows, model) {
   let processed = 0;
   for (let i = 0; i < rows.length; i += batchSize) {
     const batch = rows.slice(i, i + batchSize);
-    const values = batch.map(row => `(${Object.values(row).map(v => `'${v}'`).join(',')})`).join(',');
-    const columns = Object.keys(batch[0]).join(',');
-    const query = `INSERT INTO ${model} (${columns}) VALUES ${values};`;
     try {
-      await prisma.$executeRawUnsafe(query);
+      await prisma[model].createMany({ data: batch });
       processed += batch.length;
     } catch (error) {
       console.error(`Error inserting batch for ${model}:`, error);
@@ -259,6 +256,22 @@ async function processChunk(rows, model) {
   }
   return processed;
 }
+// async function processChunk(rows, model) {
+//   let processed = 0;
+//   for (let i = 0; i < rows.length; i += batchSize) {
+//     const batch = rows.slice(i, i + batchSize);
+//     const values = batch.map(row => `(${Object.values(row).map(v => `'${v}'`).join(',')})`).join(',');
+//     const columns = Object.keys(batch[0]).join(',');
+//     const query = `INSERT INTO ${model} (${columns}) VALUES ${values};`;
+//     try {
+//       await prisma.$executeRawUnsafe(query);
+//       processed += batch.length;
+//     } catch (error) {
+//       console.error(`Error inserting batch for ${model}:`, error);
+//     }
+//   }
+//   return processed;
+// }
 // async function processChunk(rows, model) {
 //   let processed = 0;
 //   for (let i = 0; i < rows.length; i += batchSize) {
