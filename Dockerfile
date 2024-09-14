@@ -46,7 +46,7 @@ RUN npx prisma generate
 
 ADD . .
 
-
+RUN npm run build
 # Finally, build the production image with minimal footprint
 FROM base
 
@@ -71,4 +71,4 @@ COPY --from=build /myapp/app/components/ui/icons /myapp/app/components/ui/icons
 
 ADD . .
 
-CMD npm build && npm start
+CMD npm start
