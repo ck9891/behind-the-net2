@@ -5,10 +5,7 @@ name: Seed Database
 on:
   push:
     branches:
-      - main
-  # push:
-  #   branches:
-  #     - 'data/seed-*'
+      - 'data/seed-*'
 
 jobs:
   seed-database:
