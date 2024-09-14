@@ -7,24 +7,23 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 import { prisma } from '#app/utils/db.server.js'
 
-const batchSize = 500 // Adjust this value based on your system's performance
+const batchSize = 250 // Adjust this value based on your system's performance
 
 const shiftFiles = ['shifts2021.csv', 'shifts2022.csv', 'shifts2023.csv']
-const eventFiles = [
-	// 'events2021.csv', 
-	// 'events2022.csv', 
-	'events2023.csv'
-]
+const eventFiles = ['events2021.csv']
 
 async function main() {
 	try {
-		console.log('🌱 Seeding events...')
+		console.log('🌱 Seeding...')
 		console.time(`🌱 Database has been seeded`)
+
 
 		for (const file of eventFiles) {
 			await seedEvents(file)
 			console.log(`Events seeded for ${file}`)
 		}
+
+	
 
 		console.timeEnd(`🌱 Database has been seeded`)
 	} catch (e) {
@@ -37,7 +36,7 @@ async function main() {
 
 async function seedPlayers() {
 	const filename = '../seedData/player_list_edge_all.csv'
-	await processCSV(filename, 'player', row => ({
+	await processCSVInChunks(filename, 'player', row => ({
 		season: row[0] || 'unknown',
 		playerId: row[1] || `${row[2]}-${row[3]}`,
 		first: row[2] || 'unknown',
@@ -55,7 +54,7 @@ async function seedPlayers() {
 async function seedShifts(filename) {
 	// if row[12] equals '' or undefined, it will be null
 
-	await processCSV(filename, 'shift', row => {
+	await processCSVInChunks(filename, 'shift', row => {
 		// console.log('shift row:')
 		// console.log(row)
 		// console.log(Object.keys(row).length)
@@ -80,7 +79,7 @@ async function seedShifts(filename) {
 }
 
 async function seedEvents(filename) {
-	await processCSV(filename, 'event', row => ({
+	await processCSVInChunks(filename, 'event', row => ({
 		yrGm: row[0] || '',
 		eventId: row[1] || '',
 		maxRegulationPeriods: parseInt(row[2]) || 3,
@@ -129,7 +128,7 @@ async function seedEvents(filename) {
 }
 
 async function seedEdgePlayerStats(filename) {
-	await processCSV(filename, 'edgePlayerStats', row => ({
+	await processCSVInChunks(filename, 'edgePlayerStats', row => ({
 		season: parseInt(row[0]) || 0,
 		player: parseInt(row[1]) || 0,
 		first: row[2] || '',
@@ -177,49 +176,151 @@ async function seedEdgePlayerStats(filename) {
 	}))
 }
 
-async function processCSV(
-	filename,
-	model,
-	rowProcessor,
-) {
-	return new Promise((resolve, reject) => {
-		let batch = []
-		let i = 0
-		fs.createReadStream(path.join(__dirname, `../seedData/${filename}`))
-			.pipe(csv({ headers: false }))
-			.on('data', async row => {
-
-
-				batch.push(rowProcessor(row))
-
-				if (batch.length >= batchSize) {
-					const currentBatch = batch
-					batch = []
-					try {
-						await prisma[model].createMany({ data: currentBatch })
-						i += currentBatch.length
-					} catch (error) {
-						console.error(`Error inserting batch for ${model}:`, error)
-					}
-				}
-			})
-			.on('end', async () => {
-				if (batch.length > 0) {
-					try {
-						await prisma[model].createMany({ data: batch })
-						i += batch.length
-					} catch (error) {
-						console.error(`Error inserting final batch for ${model}:`, error)
-					}
-				}
-				console.log(`Processed ${i} rows for ${filename}`)
-				resolve(null)
-			})
-			.on('error', error => {
-				reject(error)
-			})
-	})
+async function retryTransaction(operation, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      return await prisma.$transaction(operation, {
+        maxWait: 10000, // 10 seconds
+        timeout: 60000, // 60 seconds
+      })
+    } catch (error) {
+      if (i === maxRetries - 1) throw error
+      if (error.message.includes('Unable to start a transaction')) {
+        console.log(`Retrying transaction (attempt ${i + 2}/${maxRetries})`)
+        await new Promise(resolve => setTimeout(resolve, 1000 * Math.pow(2, i)))
+      } else {
+        throw error
+      }
+    }
+  }
 }
+
+async function processCSVInChunks(filename, model, rowProcessor, chunkSize = 1000) {
+  let rows = [];
+  let processedRows = 0;
+  
+  return new Promise((resolve, reject) => {
+    fs.createReadStream(path.join(__dirname, `../seedData/${filename}`))
+      .pipe(csv({ headers: false }))
+      .on('data', (row) => {
+        rows.push(rowProcessor(row));
+        if (rows.length >= chunkSize) {
+          processChunk(rows, model).then(count => {
+            processedRows += count;
+            console.log(`Processed ${processedRows} rows for ${model}`);
+          });
+          rows = [];
+        }
+      })
+      .on('end', async () => {
+        if (rows.length > 0) {
+          const count = await processChunk(rows, model);
+          processedRows += count;
+        }
+        console.log(`Finished processing ${processedRows} rows for ${model}`);
+        resolve(null);
+      })
+      .on('error', reject);
+  });
+}
+async function ensureConnection() {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+  } catch (e) {
+    console.log('Reconnecting to database...')
+    await prisma.$connect()
+  }
+}
+
+// In the processChunk function:
+// async function processChunk(rows, model) {
+//   let processed = 0;
+//   for (let i = 0; i < rows.length; i += batchSize) {
+//     const batch = rows.slice(i, i + batchSize);
+//     try {
+//       await prisma[model].createMany({ data: batch });
+//       processed += batch.length;
+//     } catch (error) {
+//       console.error(`Error inserting batch for ${model}:`, error);
+//     }
+//   }
+//   return processed;
+// }
+// async function processChunk(rows, model) {
+//   let processed = 0;
+//   for (let i = 0; i < rows.length; i += batchSize) {
+//     const batch = rows.slice(i, i + batchSize);
+//     const values = batch.map(row => `(${Object.values(row).map(v => `'${v}'`).join(',')})`).join(',');
+//     const columns = Object.keys(batch[0]).join(',');
+//     const query = `INSERT INTO ${model} (${columns}) VALUES ${values};`;
+//     try {
+//       await prisma.$executeRawUnsafe(query);
+//       processed += batch.length;
+//     } catch (error) {
+//       console.error(`Error inserting batch for ${model}:`, error);
+//     }
+//   }
+//   return processed;
+// }
+async function processChunk(rows, model) {
+  let processed = 0;
+  for (let i = 0; i < rows.length; i += batchSize) {
+    await ensureConnection()
+    const batch = rows.slice(i, i + batchSize);
+    await retryTransaction(async (tx) => {
+      await tx[model].createMany({ data: batch });
+      processed += batch.length;
+    });
+  }
+  return processed;
+}
+
+// async function processCSV1(filename, model, rowProcessor) {
+//   return new Promise((resolve, reject) => {
+//     let batch = [];
+//     let i = 0;
+//     fs.createReadStream(path.join(__dirname, `../seedData/${filename}`))
+//       .pipe(csv({ headers: false }))
+//       .on('data', (row) => {
+//         batch.push(rowProcessor(row));
+
+//         if (batch.length >= batchSize) {
+//           const currentBatch = batch;
+//           batch = [];
+//           prisma.$transaction(async (tx) => {
+//             try {
+//               await tx[model].createMany({ data: currentBatch });
+//               i += currentBatch.length;
+//             } catch (error) {
+//               console.error(`Error inserting batch for ${model}:`, error);
+//             }
+//           }).catch(error => {
+//             console.error(`Transaction failed for ${model}:`, error);
+//           });
+//         }
+//       })
+//       .on('end', async () => {
+//         if (batch.length > 0) {
+//           await prisma.$transaction(async (tx) => {
+//             try {
+//               await tx[model].createMany({ data: batch });
+//               i += batch.length;
+//             } catch (error) {
+//               console.error(`Error inserting final batch for ${model}:`, error);
+//             }
+//           }).catch(error => {
+//             console.error(`Final transaction failed for ${model}:`, error);
+//           });
+//         }
+//         console.log(`Processed ${i} rows for ${filename}`);
+//         console.log(`Processed ${i} rows for ${model}, now at ${await prisma[model].count()}`);
+//         resolve(null);
+//       })
+//       .on('error', (error) => {
+//         reject(error);
+//       });
+//   });
+// }
 
 main().catch(e => {
 	console.error(e)

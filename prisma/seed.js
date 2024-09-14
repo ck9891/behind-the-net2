@@ -23,15 +23,15 @@ async function main() {
 		await seedEdgePlayerStats('player_list_edge_all.csv')
 		console.log('Edge Player Stats seeded')
 
-		for (const file of shiftFiles) {
-			await seedShifts(file)
-			console.log(`Shifts seeded for ${file}`)
-		}
+		// for (const file of shiftFiles) {
+		// 	await seedShifts(file)
+		// 	console.log(`Shifts seeded for ${file}`)
+		// }
 
-		for (const file of eventFiles) {
-			await seedEvents(file)
-			console.log(`Events seeded for ${file}`)
-		}
+		// for (const file of eventFiles) {
+		// 	await seedEvents(file)
+		// 	console.log(`Events seeded for ${file}`)
+		// }
 
 	
 

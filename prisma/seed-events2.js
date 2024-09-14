@@ -9,29 +9,19 @@ import { prisma } from '#app/utils/db.server.js'
 
 const batchSize = 250 // Adjust this value based on your system's performance
 
-const shiftFiles = ['shifts2021.csv']
-const eventFiles = ['events2021.csv', 'events2022.csv', 'events2023.csv']
+const shiftFiles = ['shifts2021.csv', 'shifts2022.csv', 'shifts2023.csv']
+const eventFiles = ['events2022.csv']
 
 async function main() {
 	try {
 		console.log('🌱 Seeding...')
 		console.time(`🌱 Database has been seeded`)
 
-		// await seedPlayers()
-		// console.log('Players seeded')
-		
-		// await seedEdgePlayerStats('player_list_edge_all.csv')
-		// console.log('Edge Player Stats seeded')
 
-		for (const file of shiftFiles) {
-			await seedShifts(file)
-			console.log(`Shifts seeded for ${file}`)
+		for (const file of eventFiles) {
+			await seedEvents(file)
+			console.log(`Events seeded for ${file}`)
 		}
-
-		// for (const file of eventFiles) {
-		// 	await seedEvents(file)
-		// 	console.log(`Events seeded for ${file}`)
-		// }
 
 	
 
