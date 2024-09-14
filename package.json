@@ -28,7 +28,13 @@
     "test:e2e:run": "cross-env CI=true playwright test",
     "test:e2e:install": "npx playwright install --with-deps chromium",
     "typecheck": "tsc",
-    "validate": "run-p \"test -- --run\" lint typecheck test:e2e:run"
+    "validate": "run-p \"test -- --run\" lint typecheck test:e2e:run",
+    "seed-events": "tsx ./prisma/seed-events.js",
+    "seed-events2": "tsx ./prisma/seed-events2.js",
+    "seed-events3": "tsx ./prisma/seed-events3.js",
+    "seed-shifts": "tsx ./prisma/seed-shifts.js",
+    "seed-shifts2": "tsx ./prisma/seed-shifts2.js",
+    "seed-shifts3": "tsx ./prisma/seed-shifts3.js"
   },
   "prettier": "@epic-web/config/prettier",
   "eslintIgnore": [
