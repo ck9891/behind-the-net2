@@ -205,7 +205,7 @@ async function retryTransaction(operation, maxRetries = 3) {
   }
 }
 
-async function processCSVInChunks(filename, model, rowProcessor, chunkSize = 5000) {
+async function processCSVInChunks(filename, model, rowProcessor, chunkSize = 2000) {
   let rows = [];
   let processedRows = 0;
   
@@ -246,15 +246,31 @@ async function ensureConnection() {
 async function processChunk(rows, model) {
   let processed = 0;
   for (let i = 0; i < rows.length; i += batchSize) {
-    await ensureConnection()
     const batch = rows.slice(i, i + batchSize);
-    await retryTransaction(async (tx) => {
-      await tx[model].createMany({ data: batch });
+    const values = batch.map(row => `(${Object.values(row).map(v => `'${v}'`).join(',')})`).join(',');
+    const columns = Object.keys(batch[0]).join(',');
+    const query = `INSERT INTO ${model} (${columns}) VALUES ${values};`;
+    try {
+      await prisma.$executeRawUnsafe(query);
       processed += batch.length;
-    });
+    } catch (error) {
+      console.error(`Error inserting batch for ${model}:`, error);
+    }
   }
   return processed;
 }
+// async function processChunk(rows, model) {
+//   let processed = 0;
+//   for (let i = 0; i < rows.length; i += batchSize) {
+//     await ensureConnection()
+//     const batch = rows.slice(i, i + batchSize);
+//     await retryTransaction(async (tx) => {
+//       await tx[model].createMany({ data: batch });
+//       processed += batch.length;
+//     });
+//   }
+//   return processed;
+// }
 
 // async function processCSV1(filename, model, rowProcessor) {
 //   return new Promise((resolve, reject) => {
