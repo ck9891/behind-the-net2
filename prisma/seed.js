@@ -190,8 +190,8 @@ async function retryTransaction(operation, maxRetries = 3) {
   for (let i = 0; i < maxRetries; i++) {
     try {
       return await prisma.$transaction(operation, {
-        maxWait: 5000, // 5 seconds
-        timeout: 30000, // 30 seconds
+        maxWait: 10000, // 10 seconds
+        timeout: 60000, // 60 seconds
       })
     } catch (error) {
       if (i === maxRetries - 1) throw error
@@ -205,7 +205,7 @@ async function retryTransaction(operation, maxRetries = 3) {
   }
 }
 
-async function processCSVInChunks(filename, model, rowProcessor, chunkSize = 10000) {
+async function processCSVInChunks(filename, model, rowProcessor, chunkSize = 5000) {
   let rows = [];
   let processedRows = 0;
   
@@ -233,10 +233,20 @@ async function processCSVInChunks(filename, model, rowProcessor, chunkSize = 100
       .on('error', reject);
   });
 }
+async function ensureConnection() {
+  try {
+    await prisma.$queryRaw`SELECT 1`
+  } catch (e) {
+    console.log('Reconnecting to database...')
+    await prisma.$connect()
+  }
+}
 
+// In the processChunk function:
 async function processChunk(rows, model) {
   let processed = 0;
   for (let i = 0; i < rows.length; i += batchSize) {
+    await ensureConnection()
     const batch = rows.slice(i, i + batchSize);
     await retryTransaction(async (tx) => {
       await tx[model].createMany({ data: batch });
