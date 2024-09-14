@@ -10,6 +10,9 @@ export const prisma = remember('prisma', () => {
 	const logThreshold = 20
 
 	const client = new PrismaClient({
+		transactionOptions: {
+			timeout: 30000,
+		},
 		log: [
 			{ level: 'query', emit: 'event' },
 			{ level: 'error', emit: 'stdout' },
