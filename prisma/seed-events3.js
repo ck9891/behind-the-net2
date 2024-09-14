@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 import { prisma } from '#app/utils/db.server.js'
 
-const batchSize = 250 // Adjust this value based on your system's performance
+const batchSize = 750 // Adjust this value based on your system's performance
 
 const shiftFiles = ['shifts2021.csv', 'shifts2022.csv', 'shifts2023.csv']
 const eventFiles = [ 'events2023.csv']
@@ -205,7 +205,7 @@ async function retryTransaction(operation, maxRetries = 3) {
   }
 }
 
-async function processCSVInChunks(filename, model, rowProcessor, chunkSize = 1000) {
+async function processCSVInChunks(filename, model, rowProcessor, chunkSize = 5000) {
   let rows = [];
   let processedRows = 0;
   
