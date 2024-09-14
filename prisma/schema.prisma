@@ -6,8 +6,9 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = "postgresql://postgres.bokgyinuhjslwfwkjmfa:cXpmVXMnoHilxX7L@aws-0-ca-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true&timeout=30000"
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
@@ -169,7 +170,7 @@ model Connection {
 }
 
 model Player {
-  id       Int    @id @default(autoincrement())
+  id       Int     @id @default(autoincrement())
   playerId String
   season   String
   first    String
@@ -181,13 +182,14 @@ model Player {
   gp       Int
   goals    Int
   assists  Int
+  teamId   String?
   // shifts   Shift[]
   // events   Event[]
   // Shift    Shift[]
 }
 
 model Shift {
-  id               Int    @id @default(autoincrement())
+  id               Int     @id @default(autoincrement())
   shiftId          Int
   detailCode       String
   gameId           String
@@ -204,15 +206,16 @@ model Shift {
   playerId         String
   // Player           Player @relation(fields: [playerId], references: [id])
   // Player           Player? @relation(fields: [playerId], references: [id])
+  teamId2          String?
 }
 
 model Event {
-  id                    Int    @id @default(autoincrement())
+  id                    Int     @id @default(autoincrement())
   yrGm                  String
   eventId               String
-  maxRegulationPeriods  Int    @default(3)
+  maxRegulationPeriods  Int     @default(3)
   number                Int
-  periodType            String @default("REG")
+  periodType            String  @default("REG")
   minutesElapsed        Int
   secondsElapsed        Int
   minutesRemaining      Int
@@ -253,10 +256,11 @@ model Event {
   assist2PlayerId       Int
   assist2PlayerTotal    Int
   // player                Player @relation(fields: [playerId], references: [id])
+  teamId                String?
 }
 
 model EdgePlayerStats {
-  id                     Int    @id @default(autoincrement())
+  id                     Int     @id @default(autoincrement())
   season                 Int
   player                 Int
   first                  String
@@ -301,4 +305,20 @@ model EdgePlayerStats {
   speed70To80            Int
   avgSpeed70To80         Float
   percentileSpeed70To80  Float
+  teamId                 String?
+}
+
+model Team {
+  id           Int    @id @default(autoincrement())
+  teamId       String
+  season       String
+  name         String
+  city         String
+  division     String
+  conference   String
+  abbreviation String
+  color1       String
+  color2       String
+  color3       String
+  color4       String
 }

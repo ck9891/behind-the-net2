@@ -28,8 +28,8 @@ export async function action({ request }: ActionFunctionArgs) {
 	const contentType = file.type;
 
 	try {
-		await uploadFile(filename, contentType, file.stream(), model);
-		return json({ status: 'success' });
+		const result = await uploadFile(filename, contentType, file, model);
+		return json({ status: result.status });
 	} catch (error) {
 		console.error('Upload error:', error);
 		return json({ error: 'File upload failed' }, { status: 500 });

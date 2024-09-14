@@ -7,7 +7,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 import { prisma } from '#app/utils/db.server.js'
 
-const batchSize = 500 // Adjust this value based on your system's performance
+const batchSize = 1000 // Adjust this value based on your system's performance
 
 const shiftFiles = ['shifts2021.csv', 'shifts2022.csv', 'shifts2023.csv']
 const eventFiles = ['events2021.csv', 'events2022.csv', 'events2023.csv']
@@ -186,49 +186,51 @@ async function seedEdgePlayerStats(filename) {
 	}))
 }
 
-async function processCSV(
-	filename,
-	model,
-	rowProcessor,
-) {
-	return new Promise((resolve, reject) => {
-		let batch = []
-		let i = 0
-		fs.createReadStream(path.join(__dirname, `../seedData/${filename}`))
-			.pipe(csv({ headers: false }))
-			.on('data', async row => {
+async function processCSV(filename, model, rowProcessor) {
+  return new Promise((resolve, reject) => {
+    let batch = [];
+    let i = 0;
+    fs.createReadStream(path.join(__dirname, `../seedData/${filename}`))
+      .pipe(csv({ headers: false }))
+      .on('data', (row) => {
+        batch.push(rowProcessor(row));
 
-
-				batch.push(rowProcessor(row))
-
-				if (batch.length >= batchSize) {
-					const currentBatch = batch
-					batch = []
-					try {
-						await prisma[model].createMany({ data: currentBatch })
-						i += currentBatch.length
-					} catch (error) {
-						console.error(`Error inserting batch for ${model}:`, error)
-					}
-				}
-			})
-			.on('end', async () => {
-				if (batch.length > 0) {
-					try {
-						await prisma[model].createMany({ data: batch })
-						i += batch.length
-					} catch (error) {
-						console.error(`Error inserting final batch for ${model}:`, error)
-					}
-				}
-				console.log(`Processed ${i} rows for ${filename}`)
-				console.log(`Processed ${i} rows for ${model}, now at ${await prisma[model].count()}`)
-				resolve(null)
-			})
-			.on('error', error => {
-				reject(error)
-			})
-	})
+        if (batch.length >= batchSize) {
+          const currentBatch = batch;
+          batch = [];
+          prisma.$transaction(async (tx) => {
+            try {
+              await tx[model].createMany({ data: currentBatch });
+              i += currentBatch.length;
+            } catch (error) {
+              console.error(`Error inserting batch for ${model}:`, error);
+            }
+          }).catch(error => {
+            console.error(`Transaction failed for ${model}:`, error);
+          });
+        }
+      })
+      .on('end', async () => {
+        if (batch.length > 0) {
+          await prisma.$transaction(async (tx) => {
+            try {
+              await tx[model].createMany({ data: batch });
+              i += batch.length;
+            } catch (error) {
+              console.error(`Error inserting final batch for ${model}:`, error);
+            }
+          }).catch(error => {
+            console.error(`Final transaction failed for ${model}:`, error);
+          });
+        }
+        console.log(`Processed ${i} rows for ${filename}`);
+        console.log(`Processed ${i} rows for ${model}, now at ${await prisma[model].count()}`);
+        resolve(null);
+      })
+      .on('error', (error) => {
+        reject(error);
+      });
+  });
 }
 
 main().catch(e => {

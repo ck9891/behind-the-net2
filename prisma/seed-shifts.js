@@ -9,7 +9,11 @@ import { prisma } from '#app/utils/db.server.js'
 
 const batchSize = 500 // Adjust this value based on your system's performance
 
-const shiftFiles = ['shifts2021.csv', 'shifts2022.csv', 'shifts2023.csv']
+const shiftFiles = [
+	// 'shifts2021.csv', 
+	'shifts2022.csv', 
+	// 'shifts2023.csv'
+]
 const eventFiles = ['events2021.csv', 'events2022.csv', 'events2023.csv']
 
 async function main() {

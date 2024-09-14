@@ -3,66 +3,103 @@ import { pipeline } from 'node:stream/promises'
 import { parse } from 'csv-parse'
 import { prisma } from '#app/utils/db.server.ts'
 
-export async function uploadFile(filename, contentType, fileStream, model) {
-	const records = []
+export async function uploadFile(filename: string, contentType: string, file: File, model: string) {
+	try {
+			const fileContent = await file.text();
+			const records = parse(fileContent, {
+					columns: false,
+					skip_empty_lines: true,
+			});
 
-	await pipeline(
-		fileStream,
-		parse({
-			columns: false,
-			skip_empty_lines: true,
-
-		}),
-		async function* (source) {
-			for await (const record of source) {
-				records.push(record)
-        console.log(record)
-				// Process in batches of 1000 to avoid memory issues
-				if (records.length >= 1000) {
-					yield* await processRecords(records, model)
-          console.log(records)
-					records.length = 0
-				}
+			const batchSize = 500;
+			for (let i = 0; i < records.length; i += batchSize) {
+					const batch = records.slice(i, i + batchSize);
+					await processRecords(batch, model);
 			}
 
-			// Process any remaining records
-			if (records.length > 0) {
-				yield* await processRecords(records, model)
-			}
-		},
-	)
+			// Save metadata about the upload
+			// await prisma.fileUpload.create({
+			//   data: {
+			//     filename,
+			//     model,
+			//     uploadedAt: new Date(),
+			//   },
+			// });
 
-	// Save metadata about the upload
-	// await prisma.fileUpload.create({
-	//   data: {
-	//     filename,
-	//     model,
-	//     uploadedAt: new Date(),
-	//   },
-	// });
+			return { status: 'success' };
+	} catch (error) {
+			console.error('Upload error:', error);
+			throw new Error('File upload failed');
+	}
 }
+
+// export async function uploadFile(filename, contentType, file, model) {
+// 	try {
+// 	const records = []
+
+// 	await pipeline(
+// 		fileStream,
+// 		parse({
+// 			columns: false,
+// 			skip_empty_lines: true,
+
+// 		}),
+// 		async function* (source) {
+// 			for await (const record of source) {
+// 				records.push(record)
+//         console.log(record)
+// 				// Process in batches of 1000 to avoid memory issues
+// 				if (records.length >= 500) {
+// 					yield* await processRecords(records, model)
+//           console.log(records)
+// 					records.length = 0
+// 				}
+// 			}
+
+// 			// Process any remaining records
+// 			if (records.length > 0) {
+// 				yield* await processRecords(records, model)
+// 			}
+// 		},
+// 	)
+
+// 	// Save metadata about the upload
+// 	// await prisma.fileUpload.create({
+// 	//   data: {
+// 	//     filename,
+// 	//     model,
+// 	//     uploadedAt: new Date(),
+// 	//   },
+// 	// });
+// 	return { status: 'success' }
+// 	} catch (error) {
+// 		console.error('Upload error:', error)
+// 		throw new Error('File upload failed')
+// 	}
+	
+// }
 
 async function* processRecords(records, model) {
 	switch (model) {
 		case 'shift':
-			// await prisma.shift.createMany({
-			// 	data: records.map(row => ({
-			// 		shiftId: parseInt(row[0]),
-			// 		detailCode: row[1] || '',
-			// 		gameId: row[2] || '',
-			// 		teamId: row[3] || '',
-			// 		period: parseInt(row[4]),
-			// 		startTime: parseInt(row[5]),
-			// 		duration: parseInt(row[6]),
-			// 		endTime: parseInt(row[7]),
-			// 		shiftNumber: parseInt(row[8]),
-			// 		typeCode: row[9] || '',
-			// 		eventNumber: parseInt(row[10]),
-			// 		eventDescription: row[11] || '',
-			// 		playerId: row[12],
-			// 	})),
+			await prisma.shift.createMany({
+				data: records.map(row => ({
+					shiftId: parseInt(row[0]),
+					detailCode: row[1] || '',
+					gameId: row[2] || '',
+					teamId: row[3] || '',
+					period: parseInt(row[4]),
+					startTime: parseInt(row[5]),
+					duration: parseInt(row[6]),
+					endTime: parseInt(row[7]),
+					shiftNumber: parseInt(row[8]),
+					typeCode: row[9] || '',
+					eventNumber: parseInt(row[10]),
+					eventDescription: row[11] || '',
+					playerId: row[12],
+				})),
 				
-			// })
+			})
 			break
 		case 'player':
 			await prisma.player.createMany({
