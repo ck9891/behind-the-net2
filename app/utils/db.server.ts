@@ -12,7 +12,7 @@ export const prisma = remember('prisma', () => {
 	const client = new PrismaClient({
 		transactionOptions: {
 			timeout: 60000,
-			
+
 		},
 		log: [
 			{ level: 'query', emit: 'event' },
