@@ -13,12 +13,14 @@ import {
 	TableCaption,
 } from '#app/components/ui/table'
 import { type Player } from '#app/types/edge.js'
+import { transformYear } from '#app/utils/misc.tsx'
 import {
 	type PlayerShot,
 	getPlayer,
 	getPlayerEvents,
 	getPlayerShots,
 } from './players.server'
+
 // async function getTeamSchedule(team: string, season: number) {
 // 	// get the entire year's schedule by default
 // 	let url = `https://api-web.nhle.com/v1/club-schedule-season/${team}/${season}`
@@ -125,7 +127,7 @@ export function PlayerTable({ player }: { player: Player[] }) {
 			<TableBody>
 				{player.map((p: Player, i) => (
 					<TableRow key={`${i}-${p.season}`}>
-						<TableCell className="w-10">{p.season}</TableCell>
+						<TableCell>{transformYear(p.season)}</TableCell>
 						<TableCell>{p.first}</TableCell>
 						<TableCell>{p.last}</TableCell>
 						<TableCell>{p.position}</TableCell>
@@ -147,9 +149,10 @@ export default function PlayerRoute() {
 	const [player] = playerLandingData
 	return (
 		<div className="w-ful0l mx-auto flex h-full max-w-5xl flex-col justify-center gap-4 p-4">
-			<h1 className="mb-4 text-3xl">
+			<h1 className="mb-4 text-3xl text-center">
 				{player.first} {player.last}
 			</h1>
+			<img src={`https://assets.nhle.com/mugs/nhl/latest/${player.playerId}.png`} alt={player.first} width={100} height={100} className='mx-auto rounded-full' />
 			<PlayerTable player={playerLandingData} />
 			<div className="mx-auto w-full max-w-5xl my-8">
 				<nav className='flex gap-4 justify-center'>

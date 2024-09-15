@@ -287,3 +287,9 @@ export async function downloadFile(url: string, retries: number = 0) {
 		return downloadFile(url, retries + 1)
 	}
 }
+
+export function transformYear(year: string) {
+	const year1 = year.toString().slice(0, 4)
+	const year2 = year.toString().slice(4, 8)
+	return `${year1}-${year2}`
+}

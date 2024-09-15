@@ -1,18 +1,30 @@
-import { type ActionFunctionArgs, json, type LoaderFunctionArgs } from '@remix-run/node'
+import {
+	type ActionFunctionArgs,
+	json,
+	type LoaderFunctionArgs,
+} from '@remix-run/node'
 
-import { Form, NavLink, useActionData, useLoaderData, useSubmit } from '@remix-run/react'
+import {
+	Form,
+	NavLink,
+	useActionData,
+	useLoaderData,
+	useSubmit,
+} from '@remix-run/react'
 import { Link } from 'lucide-react'
 import React from 'react'
 import { StatsPopup } from '#app/components/stats-popup.js'
 import { Button } from '#app/components/ui/button.js'
+import { Checkbox } from '#app/components/ui/checkbox.js'
 import { Input } from '#app/components/ui/input.js'
+import { Label } from '#app/components/ui/label.js'
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "#app/components/ui/select"
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from '#app/components/ui/select'
 import {
 	Table,
 	TableBody,
@@ -22,132 +34,219 @@ import {
 	TableCaption,
 } from '#app/components/ui/table'
 
-
+import { transformYear } from '#app/utils/misc.tsx'
 import { getPlayers } from './players.server'
 
-function transformYear(year: string) {
-  const year1 = year.toString().slice(0, 4)
-  const year2 = year.toString().slice(4, 8)
-  return `${year1}-${year2}`
-}
-
 export async function action({ request }: ActionFunctionArgs) {
-  const formData = await request.formData()
-  const season = formData.get('season')
-  const team = formData.get('team')
-  const position = formData.get('position')
-  const firstName = formData.get('first-name')
-  const lastName = formData.get('last-name')
-  const page = parseInt(formData.get('number-of-players')) || 50;
-  const players = await getPlayers({ page, skip: 0, season, team, position, firstName, lastName })
-  console.log(players)
-  return json({ players })
+	const formData = await request.formData()
+	const season = formData.get('season')
+	const team = formData.get('team')
+	const position = formData.get('position')
+	const firstName = formData.get('first-name')
+	const lastName = formData.get('last-name')
+	const page = parseInt(formData.get('number-of-players')) || 50
+  const sort = formData.get('sort')
+  console.log(sort)
+	const players = await getPlayers({
+		page,
+		skip: 0,
+		season,
+		team,
+		position,
+		firstName,
+		lastName,
+	})
+	console.log(players)
+	return json({ players })
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-  const players = await getPlayers({ page: 50, skip: 0 })
+	const players = await getPlayers({ page: 50, skip: 0 })
 	return json({ edgePlayerData: players })
 }
 
 export default function EdgePlayersRoute() {
 	const { edgePlayerData } = useLoaderData<typeof loader>()
-  const actionData = useActionData<typeof action>()
-  const filteredPlayers = actionData?.players
+	const actionData = useActionData<typeof action>()
+	const filteredPlayers = actionData?.players
 
-  const players = filteredPlayers || edgePlayerData
+	const players = filteredPlayers || edgePlayerData
 
-  const submit = useSubmit();
+	const submit = useSubmit()
 
-  const handleChange = React.useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-    const form = event.currentTarget.form;
-    if (form) {
-      submit(form);
-    }
-  }, [submit]);
+	const handleChange = React.useCallback(
+		(event: React.ChangeEvent<HTMLInputElement>) => {
+			const form = event.currentTarget.form
+			if (form) {
+				submit(form)
+			}
+		},
+		[submit],
+	)
 
 	return (
-    <div className='w-11/12 mx-auto rounded-md bg-foreground text-background p-4 shadow-slate-800 shadow-sm'>
-      <Form method='POST' className='flex flex-col md:flex-row gap-4 items-center mb-4'>
-        <p className='text-body-md text-muted-foreground'>Filters:</p>
-        <Input name="first-name" placeholder="First Name" className='bg-foreground' onChange={handleChange} />
-        <Input name="last-name" placeholder="Last Name" className='bg-foreground' onChange={handleChange} />
-        <Select name='season'>
-          <SelectTrigger>
-            <SelectValue placeholder='Select a season…' />
-            <SelectContent>
-              <SelectItem value='20222023'>2023</SelectItem>
-              <SelectItem value='20212022'>2022</SelectItem>
-              <SelectItem value='20202021'>2021</SelectItem>
-            </SelectContent>
-          </SelectTrigger>
-          </Select>
-          <Select name="team">
-            <SelectTrigger>
-              <SelectValue placeholder='Select a team…' />
-              <SelectContent>
-                <SelectItem value='VAN'>VAN</SelectItem>
-                <SelectItem value='NYR'>NYR</SelectItem>
-                <SelectItem value='PHI'>PHI</SelectItem>
-                <SelectItem value='TBL'>TBL</SelectItem>
-              </SelectContent>
-              </SelectTrigger>
-          </Select>
-          <Select name="position">
-            <SelectTrigger>
-              <SelectValue placeholder='Select a position…' />
-              <SelectContent>
-                <SelectItem value='C'>C</SelectItem>
-                <SelectItem value='LW'>LW</SelectItem>
-                <SelectItem value='RW'>RW</SelectItem>
-                <SelectItem value='D'>D</SelectItem>
-
-              </SelectContent>
-            </SelectTrigger>
-            </Select>
-            <Select name="number-of-players">
-              <SelectTrigger>
-                <SelectValue placeholder='Select a number of players…' />
-                <SelectContent>
-                  <SelectItem value='10'>10</SelectItem>
-                  <SelectItem value='25'>25</SelectItem>
-                  <SelectItem value='50'>50</SelectItem>
-                  <SelectItem value='100'>100</SelectItem>
-                  <SelectItem value='250'>250</SelectItem>
-                  <SelectItem value='500'>500</SelectItem>
-                  <SelectItem value='1000'>1000</SelectItem>
-                  </SelectContent>
-              </SelectTrigger>
-            </Select>
-          <Button className='w-full md:w-auto' type='submit'>Filter</Button>
-      </Form>
-      <Table>
-        <TableCaption className='mb-4 text-background'>Player Edge Stats</TableCaption>
-        <TableRow>
-          <TableHead>Season</TableHead>
-          <TableHead>Name</TableHead>
-          <TableHead>Position</TableHead>
-          <TableHead>Shoots</TableHead>
-          <TableHead>Team</TableHead>
-          <TableHead>Jersey</TableHead>
-          <TableHead>GP</TableHead>
-          <TableHead>Goals</TableHead>
-          <TableHead>Assists</TableHead>
-        </TableRow>
-        <TableBody>
-          {players.map(player => (
-            <>
-              <TableRow key={player.playerId}>
-                <TableCell className='w-[100px]'>{transformYear(player.season)}</TableCell>
-                <TableCell className='w-[170px]'><NavLink to={`./single/${player.playerId}`} className='flex gap-2'><Link />{player.first} {player.last}</NavLink></TableCell>
-                <TableCell>{player.position}</TableCell>
-                <TableCell>{player.shoots}</TableCell>
-                <TableCell>{player.team}</TableCell>
-                <TableCell>{player.jersey}</TableCell>
-                <TableCell>{player.gp}</TableCell>
-                <TableCell>{player.goals}</TableCell>
-                <TableCell>{player.assists}</TableCell>
-                {/* <TableCell className='flex gap-1 flex-wrap w-[140px] md:w-full'> */}
-                {/* <StatsPopup
+		<Form
+			method="POST"
+			className="mx-auto w-11/12 rounded-md bg-foreground p-4 text-background shadow-sm shadow-slate-800"
+		>
+			<div className="mb-4 flex flex-col items-center gap-4 md:flex-row">
+				<p className="text-body-md text-muted-foreground">Filters:</p>
+				<Input
+					name="first-name"
+					placeholder="First Name"
+					className="bg-foreground"
+					onChange={handleChange}
+				/>
+				<Input
+					name="last-name"
+					placeholder="Last Name"
+					className="bg-foreground"
+					onChange={handleChange}
+				/>
+				<Select name="season">
+					<SelectTrigger>
+						<SelectValue placeholder="Select a season…" />
+						<SelectContent>
+							<SelectItem value="20222023">2023</SelectItem>
+							<SelectItem value="20212022">2022</SelectItem>
+							<SelectItem value="20202021">2021</SelectItem>
+						</SelectContent>
+					</SelectTrigger>
+				</Select>
+				<Select name="team">
+					<SelectTrigger>
+						<SelectValue placeholder="Select a team…" />
+						<SelectContent>
+							<SelectItem value="VAN">VAN</SelectItem>
+							<SelectItem value="NYR">NYR</SelectItem>
+							<SelectItem value="PHI">PHI</SelectItem>
+							<SelectItem value="TBL">TBL</SelectItem>
+						</SelectContent>
+					</SelectTrigger>
+				</Select>
+				<Select name="position">
+					<SelectTrigger>
+						<SelectValue placeholder="Select a position…" />
+						<SelectContent>
+							<SelectItem value="C">C</SelectItem>
+							<SelectItem value="LW">LW</SelectItem>
+							<SelectItem value="RW">RW</SelectItem>
+							<SelectItem value="D">D</SelectItem>
+						</SelectContent>
+					</SelectTrigger>
+				</Select>
+				<Select name="number-of-players">
+					<SelectTrigger>
+						<SelectValue placeholder="Select a number of players…" />
+						<SelectContent>
+							<SelectItem value="10">10</SelectItem>
+							<SelectItem value="25">25</SelectItem>
+							<SelectItem value="50">50</SelectItem>
+							<SelectItem value="100">100</SelectItem>
+							<SelectItem value="250">250</SelectItem>
+							<SelectItem value="500">500</SelectItem>
+							<SelectItem value="1000">1000</SelectItem>
+						</SelectContent>
+					</SelectTrigger>
+				</Select>
+				<Button className="w-full md:w-auto" type="submit">
+					Filter
+				</Button>
+			</div>
+			<Table>
+				<TableCaption className="mb-4 text-background">
+					Player Edge Stats
+				</TableCaption>
+				<TableRow>
+					<TableHead>
+            <Label className="relative">Season
+						<Checkbox name="sort" value="Season" onClick={e => handleChange(e)} className="text-background absolute w-full h-full l-0 opacity-0 cursor-pointer">
+							Season
+						</Checkbox>
+            </Label>
+					</TableHead>
+					<TableHead>
+            <Label className="relative">Name
+						<Checkbox name="sort" value="Name" onClick={e => handleChange(e)} className="text-background absolute w-full h-full l-0 opacity-0 cursor-pointer">
+							Name
+						</Checkbox>
+            </Label>
+					</TableHead>
+					<TableHead>
+            <Label className="relative">Position
+						<Checkbox name="sort" value="Position" onClick={e => handleChange(e)} className="text-background absolute w-full h-full l-0 opacity-0 cursor-pointer">
+							Position
+						</Checkbox>
+            </Label>
+					</TableHead>
+					<TableHead>
+            <Label className="relative">Shoots
+						<Checkbox name="sort" value="Shoots" onClick={e => handleChange(e)} className="text-background absolute w-full h-full l-0 opacity-0 cursor-pointer">
+							Shoots
+						</Checkbox>
+            </Label>
+					</TableHead>
+					<TableHead>
+            <Label className="relative">Team
+						<Checkbox name="sort" value="Team" onClick={e => handleChange(e)} className="text-background absolute w-full h-full l-0 opacity-0 cursor-pointer">
+							Team
+						</Checkbox>
+            </Label>
+					</TableHead>
+					<TableHead>
+            <Label className="relative">Jersey
+						<Checkbox name="sort" value="Jersey" onClick={e => handleChange(e)} className="text-background absolute w-full h-full l-0 opacity-0 cursor-pointer">
+							Jersey
+						</Checkbox>
+            </Label>
+					</TableHead>
+					<TableHead>
+            <Label className="relative">GP
+						<Checkbox name="sort" value="GP" onClick={e => handleChange(e)} className="text-background absolute w-full h-full l-0 opacity-0 cursor-pointer">
+							GP
+						</Checkbox>
+            </Label>
+					</TableHead>
+					<TableHead>
+            <Label className="relative">Goals
+						<Checkbox name="sort" value="Goals" onClick={e => handleChange(e)} className="text-background absolute w-full h-full l-0 opacity-0 cursor-pointer">
+							Goals
+						</Checkbox>
+            </Label>
+					</TableHead>
+					<TableHead>
+            <Label className="relative">Assists
+						<Checkbox name="sort" value="Assists" onClick={e => handleChange(e)} className="text-background absolute w-full h-full l-0 opacity-0 cursor-pointer">
+							Assists
+						</Checkbox>
+            </Label>
+					</TableHead>
+				</TableRow>
+				<TableBody>
+					{players.map(player => (
+						<>
+							<TableRow key={player.playerId}>
+								<TableCell className="w-[100px]">
+									{transformYear(player.season)}
+								</TableCell>
+								<TableCell className="w-[170px]">
+									<NavLink
+										to={`./single/${player.playerId}`}
+										className="flex gap-2"
+									>
+										<Link />
+										{player.first} {player.last}
+									</NavLink>
+								</TableCell>
+								<TableCell>{player.position}</TableCell>
+								<TableCell>{player.shoots}</TableCell>
+								<TableCell>{player.team}</TableCell>
+								<TableCell>{player.jersey}</TableCell>
+								<TableCell>{player.gp}</TableCell>
+								<TableCell>{player.goals}</TableCell>
+								<TableCell>{player.assists}</TableCell>
+								{/* <TableCell className='flex gap-1 flex-wrap w-[140px] md:w-full'> */}
+								{/* <StatsPopup
                     popupTitle={`${player.First} ${player.Last} Speed`}
                     triggerTitle="View Speed Stats"
                     key={`${player.Season}-${player.Player}-speed`}
@@ -263,12 +362,12 @@ export default function EdgePlayersRoute() {
                       </TableBody>
                     </Table>
                   </StatsPopup> */}
-                {/* </TableCell> */}
-              </TableRow>
-            </>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+								{/* </TableCell> */}
+							</TableRow>
+						</>
+					))}
+				</TableBody>
+			</Table>
+		</Form>
 	)
 }
