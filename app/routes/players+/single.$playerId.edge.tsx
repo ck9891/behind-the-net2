@@ -2,9 +2,30 @@ import { invariantResponse } from '@epic-web/invariant'
 import { type EdgePlayerStats } from '@prisma/client'
 import { type LoaderFunctionArgs, json } from '@remix-run/node'
 import { useLoaderData } from '@remix-run/react'
+import { colors } from 'chalk'
 import React from 'react'
+import {
+	LineChart,
+	Line,
+	XAxis,
+	YAxis,
+	CartesianGrid,
+	Tooltip,
+	ResponsiveContainer,
+	BarChart,
+	Bar,
+	Legend,
+	ComposedChart,
+	ScatterChart,
+	Scatter,
+} from 'recharts'
+import {
+	Card,
+	CardContent,
+	CardHeader,
+	CardTitle,
+} from '#app/components/ui/card.js'
 import { StatsPopup } from '../../components/stats-popup.js'
-import { getEdgePlayerStats } from './players.server'
 import {
 	Table,
 	TableHeader,
@@ -15,6 +36,8 @@ import {
 	TableCell,
 	TableCaption,
 } from '../../components/ui/table'
+import { getEdgePlayerStats } from './players.server'
+
 
 function transformYear(year: number) {
 	const year1 = year.toString().slice(0, 4)
@@ -34,7 +57,40 @@ export async function loader({ params }: LoaderFunctionArgs) {
 
 export default function PlayerEdgeDataRoute() {
 	const { playerEdgeData } = useLoaderData<typeof loader>()
+// Prepare data for the charts
+const chartData = playerEdgeData.map(data => ({
+  season: data.season,
+  avgSpeed: parseFloat(data.avgSkatingSpeed),
+  bursts22Plus: parseInt(data.bursts22Plus)
+}));
 
+// Function to generate ticks with a tighter range
+const generateTicks = (data) => {
+  const speeds = data.map(d => d.avgSpeed);
+  const minSpeed = Math.min(...speeds);
+  const maxSpeed = Math.max(...speeds);
+  
+  const start = Math.floor(minSpeed * 4) / 4; // Round down to nearest 0.25
+  const end = Math.ceil(maxSpeed * 4) / 4;    // Round up to nearest 0.25
+  
+  const ticks = [];
+  for (let i = start; i <= end; i += 0.25) {
+    ticks.push(Number(i.toFixed(2))); // Ensure we don't get floating point errors
+  }
+  return ticks;
+};
+
+
+// Custom tick component
+const CustomYAxisTick = ({ x, y, payload }) => {
+  return (
+    <g transform={`translate(${x},${y})`}>
+      <text x={0} y={0} dy={8} textAnchor="end" fill="#666" >
+        {payload.value.toFixed(2)}
+      </text>
+    </g>
+  );
+};
 	return (
 		<div className="w-ful0l mx-auto flex h-full max-w-5xl flex-col justify-center gap-4 p-4">
 			<h2 className="mb-4 text-3xl">Edge Data</h2>
@@ -45,7 +101,7 @@ export default function PlayerEdgeDataRoute() {
 				<TableRow>
 					<TableHead>Season</TableHead>
 
-					<TableHead className='flex justify-center'>Actions</TableHead>
+					<TableHead className="flex justify-center">Actions</TableHead>
 				</TableRow>
 				<TableBody>
 					{playerEdgeData.map(player => (
@@ -55,7 +111,7 @@ export default function PlayerEdgeDataRoute() {
 									{transformYear(player.season)}
 								</TableCell>
 
-								<TableCell className="flex w-[140px] flex-wrap gap-2 md:w-full justify-center">
+								<TableCell className="flex w-[140px] flex-wrap justify-center gap-2 md:w-full">
 									<StatsPopup
 										popupTitle={`${player.first} ${player.last} Speed`}
 										triggerTitle="View Speed Stats"
@@ -244,6 +300,99 @@ export default function PlayerEdgeDataRoute() {
 					))}
 				</TableBody>
 			</Table>
+			<Card>
+  <CardHeader>
+    <CardTitle>Zone Starts by Season</CardTitle>
+  </CardHeader>
+  <CardContent className="h-[300px]">
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={playerEdgeData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="season" tickFormatter={transformYear} />
+        <YAxis domain={[0, 100]} />
+        <Tooltip 
+          labelFormatter={transformYear}
+          formatter={(value, name) => [`${value}%`, name]}
+        />
+        <Legend />
+        <Bar dataKey={(data) => parseFloat(data.dZone)} name="Defensive" fill="#8884d8" />
+        <Bar dataKey={(data) => parseFloat(data.nZone)} name="Neutral" fill="#82ca9d" />
+        <Bar dataKey={(data) => parseFloat(data.oZone)} name="Offensive" fill="#ffc658" />
+      </BarChart>
+    </ResponsiveContainer>
+  </CardContent>
+</Card>
+
+<Card>
+  <CardHeader>
+    <CardTitle>Average Speed by Season</CardTitle>
+  </CardHeader>
+  <CardContent className="h-[300px]">
+    <ResponsiveContainer width="100%" height="100%">
+      <LineChart data={chartData} margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis 
+          dataKey="season" 
+          type="category" 
+          name="Season" 
+          tickFormatter={transformYear}
+        />
+        <YAxis 
+          dataKey="avgSpeed" 
+          name="Average Speed" 
+          unit="km/h"
+          domain={['dataMin - 0.5', 'dataMax + 0.5']}
+          ticks={generateTicks(chartData)}
+          tick={<CustomYAxisTick />}
+        />
+        <Tooltip 
+          formatter={(value, name) => [
+            `${value.toFixed(2)} km/h`,
+            "Average Speed"
+          ]}
+          labelFormatter={transformYear}
+        />
+        <Legend />
+        <Line 
+          type="monotone"
+          dataKey="avgSpeed" 
+          name={`${playerEdgeData[0].first} ${playerEdgeData[0].last} - Avg Speed`} 
+          stroke="#8884d8"
+          dot={{ r: 5 }}
+          activeDot={{ r: 8 }}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  </CardContent>
+</Card>
+<Card>
+  <CardHeader>
+    <CardTitle>Number of 22+ km/h Bursts by Season</CardTitle>
+  </CardHeader>
+  <CardContent className="h-[300px]">
+    <ResponsiveContainer width="100%" height="100%">
+      <BarChart data={chartData}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis 
+          dataKey="season" 
+          type="category"
+          tickFormatter={transformYear}
+        />
+        <YAxis />
+        <Tooltip 
+          formatter={(value, name) => [value, name]}
+          labelFormatter={transformYear}
+        />
+        <Legend />
+        <Bar 
+          dataKey="bursts22Plus" 
+          name="22+ km/h Bursts" 
+          fill="#82ca9d" 
+        />
+      </BarChart>
+    </ResponsiveContainer>
+  </CardContent>
+</Card>
 		</div>
 	)
 }
