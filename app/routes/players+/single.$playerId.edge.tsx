@@ -340,16 +340,16 @@ const sortedChartData = [...playerEdgeData].sort((a, b) => a.season - b.season);
           tickFormatter={transformYear}
         />
         <YAxis 
-          dataKey="avgSpeed" 
+          dataKey="avgSkatingSpeed" // Make sure this matches your data field name
           name="Average Speed" 
           unit="km/h"
           domain={['dataMin - 0.5', 'dataMax + 0.5']}
-          ticks={generateTicks(chartData)}
+          ticks={generateTicks(sortedChartData)}
           tick={<CustomYAxisTick />}
         />
         <Tooltip 
           formatter={(value, name) => [
-            `${value.toFixed(2)} km/h`,
+            `${parseFloat(value).toFixed(2)} km/h`,
             "Average Speed"
           ]}
           labelFormatter={transformYear}
@@ -357,11 +357,12 @@ const sortedChartData = [...playerEdgeData].sort((a, b) => a.season - b.season);
         <Legend />
         <Line 
           type="monotone"
-          dataKey="avgSpeed" 
-          name={`${playerEdgeData[0].first} ${playerEdgeData[0].last} - Avg Speed`} 
+          dataKey="avgSkatingSpeed" // Make sure this matches your data field name
+          name={`${sortedChartData[0]?.first || ''} ${sortedChartData[0]?.last || ''} - Avg Speed`} 
           stroke="#8884d8"
           dot={{ r: 5 }}
           activeDot={{ r: 8 }}
+          isAnimationActive={false} // Disable animation to help with debugging
         />
       </LineChart>
     </ResponsiveContainer>
