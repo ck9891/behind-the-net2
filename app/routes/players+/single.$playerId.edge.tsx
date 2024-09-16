@@ -91,6 +91,8 @@ const CustomYAxisTick = ({ x, y, payload }) => {
     </g>
   );
 };
+const sortedChartData = [...playerEdgeData].sort((a, b) => a.season - b.season);
+
 	return (
 		<div className="w-ful0l mx-auto flex h-full max-w-5xl flex-col justify-center gap-4 p-4">
 			<h2 className="mb-4 text-3xl">Edge Data</h2>
@@ -329,7 +331,7 @@ const CustomYAxisTick = ({ x, y, payload }) => {
   </CardHeader>
   <CardContent className="h-[300px]">
     <ResponsiveContainer width="100%" height="100%">
-      <LineChart data={chartData} margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
+      <LineChart data={sortedChartData} margin={{ top: 5, right: 30, left: 50, bottom: 5 }}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis 
           dataKey="season" 
@@ -371,7 +373,7 @@ const CustomYAxisTick = ({ x, y, payload }) => {
   </CardHeader>
   <CardContent className="h-[300px]">
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={chartData}>
+      <BarChart data={sortedChartData}>
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis 
           dataKey="season" 
