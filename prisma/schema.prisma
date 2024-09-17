@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgres"
   // url       = "postgresql://postgres.bokgyinuhjslwfwkjmfa:cXpmVXMnoHilxX7L@aws-0-ca-central-1.pooler.supabase.com:6543/postgres?pgbouncer=true&timeout=30000"
   // directUrl = env("DIRECT_URL")
   url      = env("DATABASE_URL")
