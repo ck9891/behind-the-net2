@@ -130,5 +130,8 @@ export async function getEdgePlayerStats(playerId: string): Promise<EdgePlayerSt
     where: {
       player: parseInt(playerId)
     },
+    orderBy: {
+      season: 'asc'
+    }
   });
 }
